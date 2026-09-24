@@ -144,7 +144,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #toast.show{opacity:1}
 
 @media (max-width:560px){
-  #place{top:auto;bottom:calc(142px + env(safe-area-inset-bottom,0px));right:12px;left:12px;max-width:none}
+  #place{top:calc(78px + env(safe-area-inset-top,0px));right:auto;left:12px;max-width:calc(100% - 24px);padding:5px 10px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .5s} #place.fade{opacity:0;pointer-events:none}
   #bar button span{display:none}
   #bar button{padding:12px}
   #mapbox,#log{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
@@ -535,7 +535,7 @@ async function startApp(){
   pano.addListener("position_changed", onMove);
   pano.addListener("pano_changed", () => {
     const d = pano.getLocation()?.description;
-    $("place").textContent = d || "";
+    $("place").textContent = d || ""; $("place").classList.remove("fade"); clearTimeout(window.placeT); window.placeT = setTimeout(() => $("place").classList.add("fade"), 3500);
   });
 
   if (addrQuery) {
