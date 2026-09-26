@@ -982,6 +982,7 @@ function payload(){
   const p = { id: myId, ...me(), host: isHost, role: myRole, t: Date.now() };
   if (myPos) { p.lat = +myPos.lat().toFixed(6); p.lng = +myPos.lng().toFixed(6); }
   if (isHost) { p.room = room; p.state = game && !ended ? "playing" : "lobby"; }
+  if (game && !ended) { p.gid = game.startAt; p.roles = game.roles; } // つかまった情報を全員で持ち合う
   return p;
 }
 let lastTrack = 0, trackTimer = null;
@@ -1013,6 +1014,10 @@ function onSync(){
   const st = ch.presenceState(), prev = players; players = {};
   for (const k in st) { const arr = st[k]; if (arr && arr.length) players[k] = { ...arr[arr.length - 1] }; }
   // ゲーム中は通信が一時的に切れた人も残し、役はゲームの記録(game.roles)を正とする
+  // タッチの知らせを受け取りそこねても、ほかの人の記録から「つかまった」を取り込む
+  if (game && !ended) Object.values(players).forEach(p => {
+    if (p.gid === game.startAt && p.roles) for (const id in p.roles) if (p.roles[id] === "oni") markCaught(id);
+  });
   if (game && !ended) game.ids.forEach(id => {
     if (!players[id] && prev[id]) players[id] = prev[id];
     if (players[id]) players[id].role = game.roles[id];
@@ -1099,18 +1104,24 @@ function onGame(m){
   } else if (m.type === "tag") {
     if (!game || ended) return;
     const tp = players[m.target];
-    toast(`${m.byName} が ${tp ? tp.name : "だれか"} をつかまえた！`);
-    if (m.target === myId && myRole === "runner") {
-      myRole = "oni"; setRoleHud(); flash();
-      say(botMode ? "つかまった〜！" : "つかまった〜！ここからは鬼だよ", true);
-      lastTrack = 0; track();
-    }
-    game.roles[m.target] = "oni";
-    if (players[m.target]) players[m.target].role = "oni";
+    if (markCaught(m.target)) toast(`${m.byName} が ${tp ? tp.name : "だれか"} をつかまえた！`);
+    lastTrack = 0; track();
     checkEnd();
   } else if (m.type === "end") {
     if (game && !ended) endGame(m.reason);
   }
+}
+// つかまった人を鬼にする(一度鬼になったら戻らない)。新しくつかまえたときだけ true
+function markCaught(id){
+  if (!game || ended || game.roles[id] !== "runner") return false;
+  game.roles[id] = "oni";
+  if (players[id]) players[id].role = "oni";
+  if (id === myId && myRole === "runner") {
+    myRole = "oni"; setRoleHud(); flash();
+    say(botMode ? "つかまった〜！" : "つかまった〜！ここからは鬼だよ", true);
+    lastTrack = 0; track();
+  }
+  return true;
 }
 function startRoles(m){ return Object.fromEntries(m.ids.map(id => [id, id === m.oni ? "oni" : "runner"])); }
 async function beginPlay(){
@@ -1362,12 +1373,19 @@ $("botBtn").addEventListener("click", async () => {
     clearInterval(botTimer); botTimer = setInterval(botTick, +$("botSpeed").value);
   } catch (e) { botMode = false; isHost = false; $("start").hidden = false; showErr(e.message); }
 });
+function botCatch(b, me, here, everyone){
+  everyone.filter(p => p.role === "runner" && p.id !== b.id).forEach(p => {
+    const pl = p.id === myId ? myPos : new google.maps.LatLng(p.lat, p.lng);
+    if (pl && D(here, pl) <= 20) onGame({ type: "tag", target: p.id, by: b.id, byName: me.name });
+  });
+}
 async function botTick(){
   if (!game || ended || !myPos) return;
   const everyone = Object.values(players).filter(p => game.ids.includes(p.id) && p.lat != null);
   for (const b of bots) {
     const me = players[b.id];
     if (me.role === "oni" && Date.now() < freezeUntil) continue;
+    if (me.role === "oni") botCatch(b, me, new google.maps.LatLng(me.lat, me.lng), everyone); // 動けなくても、そばにいればつかまえる
     const cur = await panoData({ pano: b.pano }); if (!cur || !cur.links.length) continue;
     const here = new google.maps.LatLng(me.lat, me.lng);
     // 追いかける相手 / 逃げる相手
@@ -1390,13 +1408,7 @@ async function botTick(){
     const nx = await panoData({ pano: pick.l.pano }); if (!nx) continue;
     b.pano = nx.pano; me.lat = nx.ll.lat(); me.lng = nx.ll.lng();
     // 鬼BOTのタッチ
-    if (me.role === "oni") {
-      const hereN = nx.ll;
-      everyone.filter(p => p.role === "runner" && p.id !== b.id).forEach(p => {
-        const pl = p.id === myId ? myPos : new google.maps.LatLng(p.lat, p.lng);
-        if (pl && D(hereN, pl) <= 18) onGame({ type: "tag", target: p.id, by: b.id, byName: me.name });
-      });
-    }
+    if (me.role === "oni") botCatch(b, me, nx.ll, everyone);
   }
   renderOthers(); updateRadar(); checkEnd();
 }
