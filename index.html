@@ -58,6 +58,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 }
 .field select option{color:#111}
 .hint{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+.ver{font-size:11px;color:var(--muted);text-align:right;margin:8px 0 0;opacity:.7}
 .go{
   padding:14px 18px;border:0;border-radius:999px;background:var(--lantern);color:#2a1c05;
   font-weight:900;font-size:18px;letter-spacing:.08em;
@@ -429,9 +430,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       <button class="go" id="joinBtn">部屋に入る</button>
     </div>
 
-    <p class="hint">遊び方：鬼は最初の20秒は動けません。鬼が近く（20m以内）まで来ると「タッチ」でつかまえられます。つかまった人も鬼になって、時間まで逃げきれば逃げる人の勝ちです。</p>
+    <p class="hint">遊び方：鬼は最初の20秒は動けません。鬼が近く（25m以内）まで来ると「タッチ」でつかまえられます。つかまった人も鬼になって、時間まで逃げきれば逃げる人の勝ちです。</p>
     </div>
     <p class="err" id="err" hidden></p>
+    <p class="ver">ver <span id="ver"></span></p>
   </div>
 </section>
 
@@ -650,6 +652,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
+const VERSION = "9/27-e";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -998,7 +1001,8 @@ function track(){
 }
 async function connect(code){
   if (!window.supabase) throw new Error("通信の準備ができていません。再読み込みしてください。");
-  if (!sb) sb = window.supabase.createClient(SB_URL, SB_KEY);
+  // 切れた通信に早く気づけるよう、生存確認を短い間隔で送る
+  if (!sb) sb = window.supabase.createClient(SB_URL, SB_KEY, { realtime: { heartbeatIntervalMs: 5000 } });
   ch = sb.channel("sanpo-oni-" + code, { config: { presence: { key: myId }, broadcast: { self: true } } });
   ch.on("presence", { event: "sync" }, onSync);
   ch.on("broadcast", { event: "game" }, ({ payload }) => onGame(payload));
@@ -1027,6 +1031,19 @@ function onSync(){
   if (game && !ended) { renderOthers(); updateRadar(); checkEnd(); }
 }
 const hostP = () => Object.values(players).find(p => p.host);
+// スマホで画面を消したりアプリを切り替えたりすると通信が止まるので、戻ってきたらすぐつなぎ直す
+// (つなぎ直すと、ほかの人の記録から「つかまった」なども取り込まれる)
+let rejoining = false;
+async function rejoin(){
+  if (rejoining || !ch || botMode || !room) return;
+  rejoining = true;
+  try { await sb.removeChannel(ch); } catch (e) {}
+  ch = null;
+  try { await connect(room.code); } catch (e) { toast("つながりませんでした。電波のよいところで開き直してください"); }
+  rejoining = false;
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) rejoin(); });
+addEventListener("online", rejoin);
 
 $("makeBtn").addEventListener("click", async () => {
   $("err").hidden = true; $("makeBtn").disabled = true;
@@ -1350,8 +1367,10 @@ $("botBtn").addEventListener("click", async () => {
     const n = +$("botN").value, meOni = $("botRole").value === "oni";
     players = {}; bots = [];
     const used = new Set();
+    // BOTのキャラは毎回ランダム。なるべくあなたやほかのBOTとかぶらないように選ぶ
+    const pool = CHARS.map(c => c.id).filter(id => id !== char.id).sort(() => Math.random() - .5);
     for (let i = 0; i < n; i++) {
-      const cid = rand(CHARS).id;
+      const cid = pool[i] || rand(CHARS).id;
       let name = rand(BOT_NAMES[cid]); while (used.has(name)) name = name + "2"; used.add(name);
       const role = meOni ? "runner" : (i === 0 ? "oni" : "runner");
       let d = null;
@@ -1721,6 +1740,7 @@ function recordPhoto(){
 $("homeBtn").addEventListener("click", () => location.reload());
 
 setupChars();
+$("ver").textContent = VERSION;
 </script>
 </body>
 </html>
