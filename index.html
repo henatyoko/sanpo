@@ -317,15 +317,15 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 /* 進む方向ボタン(キャラに隠れるストリートビューの矢印の代わり) */
 #pad{
   position:fixed;z-index:4;left:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px));
-  width:124px;height:124px;border-radius:50%;background:rgba(20,24,20,.35);border:1px solid var(--glass-line);
+  width:144px;height:144px;border-radius:50%;background:rgba(20,24,20,.35);border:1px solid var(--glass-line);
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 #pad::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:50%;background:var(--lantern);border:2px solid #fff}
 #pad button{
-  position:absolute;left:50%;top:50%;width:42px;height:42px;margin:-21px;border-radius:50%;
+  position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px;border-radius:50%;
   border:2px solid #fff;background:rgba(255,255,255,.92);color:#2a2a2e;display:grid;place-items:center;padding:0;
 }
-#pad button svg{width:20px;height:20px}
+#pad button svg{width:18px;height:18px}
 #pad button:disabled{opacity:.3}
 .sprite.catchable{pointer-events:auto;cursor:pointer}
 .tabs.mode{grid-template-columns:1fr 1fr;padding:5px}
@@ -1253,7 +1253,7 @@ function renderOthers(){
     }
     const x = W / 2 + Math.tan(rel * Math.PI / 180) * focal;
     // 近づくほど大きく。遠くても見えるよう実際の縮尺より大きめに描く
-    const h = Math.min(H * .7, Math.max(focal, H / 2) * (.12 + 7 / d));
+    const h = Math.min(H * .55, Math.max(focal, H / 2) * (.12 + 7 / d));
     const feet = Math.min(H - 80, H / 2 + (2.3 - pov.pitch * .03) * focal / d);
     el.style.left = x + "px"; el.style.top = feet + "px"; el.style.height = h + "px";
     el.style.zIndex = String(1000 - Math.round(d));
@@ -1514,7 +1514,7 @@ function renderPad(){
 function turnPad(){
   if (!pano || $("pad").hidden) return;
   const h = pano.getPov().heading;
-  $("pad").querySelectorAll("button").forEach(b => b.style.transform = `rotate(${norm(+b.dataset.heading - h)}deg) translateY(-40px)`);
+  $("pad").querySelectorAll("button").forEach(b => b.style.transform = `rotate(${norm(+b.dataset.heading - h)}deg) translateY(-50px)`);
 }
 function setBar(m){
   ["autoBtn","logBtn","destBtn","warpBtn"].forEach(id => $(id).hidden = m !== "walk");
