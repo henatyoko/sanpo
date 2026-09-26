@@ -311,7 +311,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .sprite{position:absolute;transform:translate(-50%,-100%);aspect-ratio:120/200}
 .sprite svg{width:100%;height:100%;overflow:visible;display:block}
 .sprite .tag{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:11px;font-weight:700;background:var(--glass);color:var(--on-glass);padding:2px 8px;border-radius:999px;white-space:nowrap}
-.sprite.oni .tag{background:var(--oni);color:#fff}
+.sprite.oni .tag{background:var(--oni);color:#fff;font-size:13px}
+.sprite.oni svg{filter:drop-shadow(0 0 6px var(--oni)) drop-shadow(0 0 2px #fff)}
 @media (prefers-reduced-motion:reduce){#tagBtn{animation:none}}
 .tabs.mode{grid-template-columns:1fr 1fr;padding:5px}
 .tabs.mode button{padding:12px;font-size:16px}
@@ -332,7 +333,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
     <div class="field">
       <label for="pname">なまえ</label>
-      <input id="pname" type="text" maxlength="10" autocomplete="off" placeholder="例：ゆきこ">
+      <input id="pname" type="text" maxlength="10" autocomplete="off">
     </div>
     <div class="field">
       <span class="lbl">キャラ</span>
@@ -607,16 +608,32 @@ const API_KEY = "AIzaSyARFqWlDAY_BPyOP7L6DfH6v_-T5LJWz9Q";
 const SB_URL = "https://lbmklokiiobgakuaohgo.supabase.co";
 const SB_KEY = "sb_publishable_oMfRvXcoRmzxgYJlkzcZ5g_EcTWrpq3";
 
+// 行き先の候補(お散歩・鬼ごっこ共通)。先頭がはじめに選ばれている場所
 const PRESETS = [
-  { name: "東京・浅草",        lat: 35.7116, lng: 139.7966 },
-  { name: "東京・谷中/根津",    lat: 35.7255, lng: 139.7660 },
-  { name: "東京・下北沢",       lat: 35.6614, lng: 139.6680 },
-  { name: "鎌倉",              lat: 35.3190, lng: 139.5500 },
-  { name: "京都・祇園/東山",    lat: 35.0037, lng: 135.7788 },
-  { name: "大阪・中崎町",       lat: 34.7090, lng: 135.5040 },
-  { name: "尾道",              lat: 34.4090, lng: 133.2030 },
-  { name: "パリ・マレ地区",      lat: 48.8590, lng: 2.3600 },
-  { name: "ニューヨーク・ソーホー",lat: 40.7233, lng: -74.0030 }
+  { name: "ニューヨーク・タイムズスクエア", lat: 40.7580, lng: -73.9855, r: 900 },
+  { name: "ロンドン・コヴェントガーデン", lat: 51.5117, lng: -0.1240, r: 900 },
+  { name: "パリ・オペラ地区",      lat: 48.8719, lng: 2.3316,  r: 900 },
+  { name: "ローマ・トレヴィの泉",   lat: 41.9009, lng: 12.4833, r: 800 },
+  { name: "バルセロナ・ゴシック地区", lat: 41.3834, lng: 2.1765, r: 700 },
+  { name: "サンフランシスコ・ユニオンスクエア", lat: 37.7880, lng: -122.4075, r: 900 },
+  { name: "ソウル・明洞",         lat: 37.5637, lng: 126.9838, r: 700 },
+  { name: "台北・西門町",         lat: 25.0421, lng: 121.5081, r: 700 },
+  { name: "香港・セントラル",      lat: 22.2819, lng: 114.1582, r: 700 },
+  { name: "シンガポール・チャイナタウン", lat: 1.2836, lng: 103.8436, r: 700 },
+  { name: "バンコク・サイアム",     lat: 13.7457, lng: 100.5347, r: 900 },
+  { name: "パリ・マレ地区",        lat: 48.8590, lng: 2.3600,  r: 1000 },
+  { name: "リスボン・アルファマ",   lat: 38.7115, lng: -9.1290, r: 700 },
+  { name: "ニューヨーク・ソーホー",  lat: 40.7233, lng: -74.0030, r: 900 },
+  { name: "ソウル・益善洞",        lat: 37.5740, lng: 126.9895, r: 700 },
+  { name: "台北・大稲埕",          lat: 25.0560, lng: 121.5100, r: 900 },
+  { name: "バンコク・旧市街",       lat: 13.7560, lng: 100.4990, r: 1500 },
+  { name: "東京・浅草",           lat: 35.7116, lng: 139.7966, r: 1200 },
+  { name: "東京・谷中/根津",       lat: 35.7255, lng: 139.7660, r: 900 },
+  { name: "東京・下北沢",          lat: 35.6614, lng: 139.6680, r: 800 },
+  { name: "鎌倉",                 lat: 35.3190, lng: 139.5500, r: 1500 },
+  { name: "京都・祇園/東山",       lat: 35.0037, lng: 135.7788, r: 1200 },
+  { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
+  { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
@@ -971,8 +988,13 @@ async function connect(code){
   });
 }
 function onSync(){
-  const st = ch.presenceState(); players = {};
-  for (const k in st) { const arr = st[k]; if (arr && arr.length) players[k] = arr[arr.length - 1]; }
+  const st = ch.presenceState(), prev = players; players = {};
+  for (const k in st) { const arr = st[k]; if (arr && arr.length) players[k] = { ...arr[arr.length - 1] }; }
+  // ゲーム中は通信が一時的に切れた人も残し、役はゲームの記録(game.roles)を正とする
+  if (game && !ended) game.ids.forEach(id => {
+    if (!players[id] && prev[id]) players[id] = prev[id];
+    if (players[id]) players[id].role = game.roles[id];
+  });
   if (!isHost) { const h = Object.values(players).find(p => p.host); if (h && h.room) room = h.room; }
   renderLobby();
   if (game && !ended) { renderOthers(); updateRadar(); checkEnd(); }
@@ -1048,6 +1070,7 @@ function onGame(m){
   if (m.type === "start") {
     if (!m.ids.includes(myId)) return;
     game = m; room = m.room; ended = false;
+    game.roles = startRoles(m);
     myRole = m.oni === myId ? "oni" : "runner";
     freezeUntil = m.startAt + 20000;
     beginPlay().catch(e => { $("lobby").hidden = false; $("lWait").textContent = "ゲームを始められませんでした：" + e.message; });
@@ -1060,11 +1083,14 @@ function onGame(m){
       say(botMode ? "つかまった〜！" : "つかまった〜！ここからは鬼だよ", true);
       lastTrack = 0; track();
     }
-    if (botMode && players[m.target]) { players[m.target].role = "oni"; checkEnd(); }
+    game.roles[m.target] = "oni";
+    if (players[m.target]) players[m.target].role = "oni";
+    checkEnd();
   } else if (m.type === "end") {
     if (game && !ended) endGame(m.reason);
   }
 }
+function startRoles(m){ return Object.fromEntries(m.ids.map(id => [id, id === m.oni ? "oni" : "runner"])); }
 async function beginPlay(){
   await mapsLoaded;
   centerLL = new google.maps.LatLng(room.center.lat, room.center.lng);
@@ -1092,7 +1118,7 @@ async function beginPlay(){
 }
 function jumpTo(latLng, radius, inside){
   return new Promise(resolve => {
-    svService.getPanorama({ location: latLng, radius, source: google.maps.StreetViewSource.OUTDOOR, preference: google.maps.StreetViewPreference.NEAREST },
+    svService.getPanorama({ location: latLng, radius, sources: [google.maps.StreetViewSource.GOOGLE, google.maps.StreetViewSource.OUTDOOR], preference: google.maps.StreetViewPreference.NEAREST },
       (data, status) => {
         if (status !== "OK") return resolve(false);
         if (inside && D(data.location.latLng, centerLL) > room.radius) return resolve(false);
@@ -1194,7 +1220,7 @@ function renderOthers(){
       el.classList.toggle("oni", p.role === "oni");
     }
     const x = W / 2 + Math.tan(rel * Math.PI / 180) * focal;
-    const h = Math.min(H * .7, 1.9 * focal / d);
+    const h = Math.min(H * .7, Math.max(96, 4 * focal / d)); // 遠くても見えるよう最低の大きさを確保
     const feet = Math.min(H - 80, H / 2 + (2.3 - pov.pitch * .03) * focal / d);
     el.style.left = x + "px"; el.style.top = feet + "px"; el.style.height = h + "px";
     el.style.zIndex = String(1000 - Math.round(d));
@@ -1209,7 +1235,7 @@ function tick(){
   const left = Math.max(0, game.endAt - now);
   const m = Math.floor(left / 60000), s = String(Math.floor(left / 1000) % 60).padStart(2, "0");
   $("gTime").textContent = `${m}:${s}`;
-  $("gLeft").textContent = Object.values(players).filter(p => game.ids.includes(p.id) && p.role === "runner").length;
+  $("gLeft").textContent = game.ids.filter(id => game.roles[id] === "runner").length;
   if (frozen) {
     const f = Math.ceil((freezeUntil - now) / 1000);
     $("fCount").textContent = Math.max(0, f);
@@ -1219,8 +1245,7 @@ function tick(){
 }
 function checkEnd(){
   if (!game || ended || Date.now() < game.startAt + 4000) return;
-  const inGame = Object.values(players).filter(p => game.ids.includes(p.id));
-  if (inGame.length && inGame.every(p => p.role === "oni")) {
+  if (game.ids.every(id => game.roles[id] === "oni")) {
     if (isHost && ch) ch.send({ type: "broadcast", event: "game", payload: { type: "end", reason: "allcaught" } });
     endGame("allcaught");
   }
@@ -1288,7 +1313,7 @@ $("botBtn").addEventListener("click", async () => {
       let d = null;
       for (let t = 0; t < 10 && !d; t++) {
         const pt = role === "oni" ? centerLL : google.maps.geometry.spherical.computeOffset(centerLL, room.radius * (.3 + .6 * Math.random()), Math.random() * 360);
-        d = await panoData({ location: pt, radius: 100, source: google.maps.StreetViewSource.OUTDOOR });
+        d = await panoData({ location: pt, radius: 100, sources: [google.maps.StreetViewSource.GOOGLE, google.maps.StreetViewSource.OUTDOOR] });
         if (d && D(d.ll, centerLL) > room.radius) d = null;
       }
       if (!d) throw new Error("この範囲にBOTが歩ける道が見つかりませんでした。場所か範囲を変えてください。");
@@ -1297,7 +1322,7 @@ $("botBtn").addEventListener("click", async () => {
     }
     const now = Date.now();
     const m = { type: "start", bot: true, ids: [myId, ...bots.map(b => b.id)], oni: meOni ? myId : "bot0", room, startAt: now + 1500, endAt: now + 1500 + room.dur * 60000 };
-    game = m; ended = false; myRole = meOni ? "oni" : "runner"; freezeUntil = m.startAt + 20000;
+    game = m; game.roles = startRoles(m); ended = false; myRole = meOni ? "oni" : "runner"; freezeUntil = m.startAt + 20000;
     players[myId] = payload();
     $("start").hidden = true;
     await beginPlay();
@@ -1397,22 +1422,7 @@ function toast(msg){
 
 // ================= お散歩モード =================
 let mode = "walk";
-const CITIES = [
-  { name: "東京・浅草",        lat: 35.7116, lng: 139.7966, r: 1200 },
-  { name: "東京・谷中/根津",    lat: 35.7255, lng: 139.7660, r: 900 },
-  { name: "東京・下北沢",       lat: 35.6614, lng: 139.6680, r: 800 },
-  { name: "鎌倉",              lat: 35.3190, lng: 139.5500, r: 1500 },
-  { name: "京都・祇園/東山",    lat: 35.0037, lng: 135.7788, r: 1200 },
-  { name: "大阪・中崎町",       lat: 34.7090, lng: 135.5040, r: 700 },
-  { name: "尾道",              lat: 34.4090, lng: 133.2030, r: 1000 },
-  { name: "ソウル・益善洞",     lat: 37.5740, lng: 126.9895, r: 700 },
-  { name: "台北・大稲埕",       lat: 25.0560, lng: 121.5100, r: 900 },
-  { name: "バンコク・旧市街",    lat: 13.7560, lng: 100.4990, r: 1500 },
-  { name: "パリ・マレ地区",      lat: 48.8590, lng: 2.3600,  r: 1000 },
-  { name: "リスボン・アルファマ", lat: 38.7115, lng: -9.1290, r: 700 },
-  { name: "ニューヨーク・ソーホー",lat: 40.7233, lng: -74.0030, r: 900 },
-  { name: "おまかせ(どこかの街)", random: true }
-];
+const CITIES = [...PRESETS, { name: "おまかせ(どこかの街)", random: true }];
 const wcitySel = $("wcity");
 CITIES.forEach((c, i) => { const o = document.createElement("option"); o.value = i; o.textContent = c.name; wcitySel.appendChild(o); });
 function setMode(m){
@@ -1518,7 +1528,13 @@ const LOCAL = {
   "バンコク":{talk:["暑い〜","トゥクトゥク乗りたい","屋台の匂いがたまらない"],souv:["マンゴー","タイカレー","象の置物"]},
   "パリ":{talk:["おしゃれすぎる","カフェでひと休みしたい","石造りの建物すてき"],souv:["クロワッサン","マカロン","古いポストカード"]},
   "リスボン":{talk:["坂と路面電車！","タイルがきれい","海風が気持ちいい"],souv:["エッグタルト","タイルのコースター","いわしの缶詰"]},
-  "ニューヨーク":{talk:["映画みたい","ビルが高い！","イエローキャブだ"],souv:["ベーグル","ホットドッグ","I♥NYのTシャツ"]}
+  "ニューヨーク":{talk:["映画みたい","ビルが高い！","イエローキャブだ"],souv:["ベーグル","ホットドッグ","I♥NYのTシャツ"]},
+  "ロンドン":{talk:["赤い二階建てバス！","紅茶飲みたい","パブが多いね"],souv:["紅茶の缶","ショートブレッド","ミュージカルのチケット"]},
+  "ローマ":{talk:["遺跡がふつうにある…","ジェラート食べよう","石畳でつまずきそう"],souv:["ジェラート","オリーブオイル","コインを泉に"]},
+  "バルセロナ":{talk:["路地が迷路みたい","バルでひと休みしたい","タイルがかわいい"],souv:["チュロス","生ハム","モザイクの小皿"]},
+  "サンフランシスコ":{talk:["ケーブルカー乗りたい","坂がすごい","霧が出てきたかも"],souv:["サワードウブレッド","チョコレート","ケーブルカーの置物"]},
+  "香港":{talk:["ネオンがすごい","二階建てトラムだ","飲茶したい〜"],souv:["エッグタルト","点心","パンダクッキー"]},
+  "シンガポール":{talk:["暑い〜","ホーカーの匂いがする","ビルと古い街並みが混ざってる"],souv:["チキンライス","カヤトースト","マーライオンの置物"]}
 };
 const HAPPENINGS = [
   {t:"猫に会った", s:"あ、猫！なでたい…"}, {t:"自販機で飲み物を買った", s:"のど渇いた。ちょっと一本"},
