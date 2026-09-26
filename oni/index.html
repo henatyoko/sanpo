@@ -248,7 +248,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   z-index:20;overflow:auto;
 }
 .screen .card{max-width:460px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(255,255,255,.05);padding:4px;border-radius:999px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;background:rgba(255,255,255,.05);padding:4px;border-radius:999px}
 .tabs button{border:0;border-radius:999px;padding:10px;background:transparent;color:var(--on-glass);font-weight:700}
 .tabs button[aria-pressed="true"]{background:var(--paper);color:var(--ink)}
 .pane{display:grid;gap:14px}
@@ -343,6 +343,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <div class="tabs">
       <button type="button" id="tabMake" aria-pressed="true">部屋をつくる</button>
       <button type="button" id="tabJoin" aria-pressed="false">部屋に入る</button>
+      <button type="button" id="tabBot" aria-pressed="false">BOTとあそぶ</button>
     </div>
 
     <div class="pane" id="makePane">
@@ -363,6 +364,23 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
           <label for="dur">時間</label>
           <select id="dur"><option value="5">5 分</option><option value="10" selected>10 分</option><option value="15">15 分</option></select>
         </div>
+      </div>
+      <div class="pane" id="botPane" hidden>
+        <div class="row2">
+          <div class="field">
+            <label for="botRole">あなたは</label>
+            <select id="botRole"><option value="runner">逃げる</option><option value="oni">鬼</option></select>
+          </div>
+          <div class="field">
+            <label for="botN">BOTの数</label>
+            <select id="botN"><option value="1">1人</option><option value="2" selected>2人</option><option value="3">3人</option></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="botSpeed">BOTの速さ</label>
+          <select id="botSpeed"><option value="4200">ゆっくり</option><option value="3000" selected>ふつう</option><option value="2000">はやい</option></select>
+        </div>
+        <button class="go" id="botBtn">BOTとあそぶ</button>
       </div>
       <button class="go" id="makeBtn">部屋をつくる</button>
     </div>
@@ -709,7 +727,9 @@ function reshapeMe(back, face, look){
       .split('x="71" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="73" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
       .split('M36 82 C44 76 76 76 84 82 L86 104 C92 130 96 150 98 168 C80 176 40 176 22 168 C24 150 28 130 34 104 Z').join('M38 81 C45 77 75 77 82 81 L84 100 L84 127 C72 129 48 129 36 127 L36 100 Z')
       .split('M34 104 C50 110 70 110 86 104').join('M36 124 C48 126 72 126 84 124')
-      .split('M22 168 C40 176 80 176 98 168').join('M51 79 C55 83 65 83 69 79').split('x="23" y="84" width="16" height="22" rx="7"').join('x="25" y="82" width="15" height="20" rx="4"').split('x="81" y="84" width="16" height="22" rx="7"').join('x="80" y="82" width="15" height="20" rx="4"');
+      .split('M22 168 C40 176 80 176 98 168').join('M51 79 C55 83 65 83 69 79')
+      .split('x="23" y="84" width="16" height="22" rx="7"').join('x="25" y="82" width="15" height="20" rx="4"')
+      .split('x="81" y="84" width="16" height="22" rx="7"').join('x="80" y="82" width="15" height="20" rx="4"');
   }
   return [back, face];
 }
@@ -774,7 +794,7 @@ function setupChars(){
   CHARS.forEach((c, i) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", c === char);
-    b.innerHTML = `${svgFace(c.face, "chip" + i)}<span>${c.name}</span>`;
+    b.innerHTML = `${svgFace(buildLook(c.id).face, "chip" + i)}<span>${c.name}</span>`;
     b.addEventListener("click", () => {
       char = c; look = { ...DEFAULT_LOOK[c.id] };
       [...box.children].forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -807,8 +827,13 @@ function renderCustom(){
 }
 const citySel = $("city");
 PRESETS.forEach((c, i) => { const o = document.createElement("option"); o.value = i; o.textContent = c.name; citySel.appendChild(o); });
-$("tabMake").addEventListener("click", () => { $("tabMake").setAttribute("aria-pressed", true); $("tabJoin").setAttribute("aria-pressed", false); $("makePane").hidden = false; $("joinPane").hidden = true; });
-$("tabJoin").addEventListener("click", () => { $("tabJoin").setAttribute("aria-pressed", true); $("tabMake").setAttribute("aria-pressed", false); $("joinPane").hidden = false; $("makePane").hidden = true; });
+function setTab(t){
+  ["Make","Join","Bot"].forEach(k => $("tab" + k).setAttribute("aria-pressed", k === t));
+  $("makePane").hidden = t === "Join"; $("joinPane").hidden = t !== "Join";
+  $("botPane").hidden = t !== "Bot"; $("makeBtn").hidden = t !== "Make";
+  $("err").hidden = true;
+}
+["Make","Join","Bot"].forEach(k => $("tab" + k).addEventListener("click", () => setTab(k)));
 try { const n = localStorage.getItem("oni_name"); if (n) $("pname").value = n; } catch (e) {}
 
 function showErr(msg){ const e = $("err"); e.textContent = msg; e.hidden = false; $("makeBtn").disabled = false; $("joinBtn").disabled = false; }
@@ -857,7 +882,9 @@ function payload(){
   return p;
 }
 let lastTrack = 0, trackTimer = null;
+function send(pl){ if (ch) ch.send({ type: "broadcast", event: "game", payload: pl }); else onGame(pl); }
 function track(){
+  if (botMode) { players[myId] = payload(); return; }
   if (!ch) return;
   const wait = 800 - (Date.now() - lastTrack);
   clearTimeout(trackTimer);
@@ -966,9 +993,10 @@ function onGame(m){
     toast(`${m.byName} が ${tp ? tp.name : "だれか"} をつかまえた！`);
     if (m.target === myId && myRole === "runner") {
       myRole = "oni"; setRoleHud(); flash();
-      say("つかまった〜！ここからは鬼だよ", true);
+      say(botMode ? "つかまった〜！" : "つかまった〜！ここからは鬼だよ", true);
       lastTrack = 0; track();
     }
+    if (botMode && players[m.target]) { players[m.target].role = "oni"; checkEnd(); }
   } else if (m.type === "end") {
     if (game && !ended) endGame(m.reason);
   }
@@ -977,7 +1005,7 @@ async function beginPlay(){
   await mapsLoaded;
   centerLL = new google.maps.LatLng(room.center.lat, room.center.lng);
   if (!pano) {
-    svService = new google.maps.StreetViewService();
+    svService = svService || new google.maps.StreetViewService();
     pano = new google.maps.StreetViewPanorama($("pano"), {
       addressControl: false, fullscreenControl: false, motionTracking: false, motionTrackingControl: false,
       zoomControl: false, panControl: false, linksControl: true, showRoadLabels: true, clickToGo: true, visible: true
@@ -1084,7 +1112,7 @@ function updateRadar(){
 $("tagBtn").addEventListener("click", () => {
   const n = nearest("runner");
   if (!n || n.d > 22 || myRole !== "oni") return;
-  ch.send({ type: "broadcast", event: "game", payload: { type: "tag", target: n.p.id, by: myId, byName: me().name } });
+  send({ type: "tag", target: n.p.id, by: myId, byName: me().name });
   $("tagBtn").hidden = true;
   say("タッチ！つかまえた！", true);
 });
@@ -1139,13 +1167,13 @@ function checkEnd(){
   if (!game || ended || Date.now() < game.startAt + 4000) return;
   const inGame = Object.values(players).filter(p => game.ids.includes(p.id));
   if (inGame.length && inGame.every(p => p.role === "oni")) {
-    if (isHost) ch.send({ type: "broadcast", event: "game", payload: { type: "end", reason: "allcaught" } });
+    if (isHost && ch) ch.send({ type: "broadcast", event: "game", payload: { type: "end", reason: "allcaught" } });
     endGame("allcaught");
   }
 }
 function endGame(reason){
   if (ended) return;
-  ended = true; clearInterval(tickTimer); setFrozen(false);
+  ended = true; clearInterval(tickTimer); clearInterval(botTimer); setFrozen(false);
   $("tagBtn").hidden = true; $("others").innerHTML = "";
   ["ghud","radar","bar","hiro","mapbox","say"].forEach(id => $(id).hidden = true);
   const list = Object.values(players).filter(p => game.ids.includes(p.id));
@@ -1154,7 +1182,7 @@ function endGame(reason){
   $("rTitle").textContent = runnersWin ? "逃げきり！" : "鬼の勝ち！";
   $("rMsg").textContent = runnersWin
     ? (myRole === "runner" ? "あなたは最後まで逃げきりました。" : `${runners.map(p => p.name).join("、")} が逃げきりました。`)
-    : "全員つかまえました。";
+    : (botMode && game.oni !== myId && myRole === "oni" ? "つかまっちゃった。もう一度チャレンジしよう！" : "全員つかまえました。");
   $("rList").innerHTML = list.map((p, i) => {
     const L = buildLook(p.char, p.look);
     const win = runnersWin ? p.role === "runner" : true;
@@ -1164,9 +1192,103 @@ function endGame(reason){
 }
 $("againBtn").addEventListener("click", () => {
   game = null; ended = false; myRole = "runner"; myPos = null; lastGoodPano = null;
+  if (botMode) { botMode = false; isHost = false; players = {}; $("result").hidden = true; $("start").hidden = false; $("botBtn").disabled = false; return; }
   lastTrack = 0; track();
   $("result").hidden = true; openLobby();
 });
+// ---------- BOT ----------
+let botMode = false, bots = [], botTimer = null;
+const panoCache = {};
+function panoData(q){
+  const k = q.pano || null;
+  if (k && panoCache[k]) return Promise.resolve(panoCache[k]);
+  return new Promise(res => svService.getPanorama(q, (d, st) => {
+    if (st !== "OK") return res(null);
+    const v = { pano: d.location.pano, ll: d.location.latLng, links: (d.links || []).filter(l => l.pano) };
+    panoCache[v.pano] = v; res(v);
+  }));
+}
+const BOT_NAMES = { me: ["たろう","はなこ","けんた"], horse: ["ウマ吉","パカ子"], shiba: ["ポチ","コタロウ"], cat: ["ミケ","タマ"] };
+function randomLook(cid){
+  const l = {}; (OPTIONS[cid] || []).forEach(o => { const c = rand(o.choices); l[o.key] = c[2] || c[1]; });
+  return l;
+}
+$("botBtn").addEventListener("click", async () => {
+  $("err").hidden = true; $("botBtn").disabled = true;
+  try {
+    const q = $("addr").value.trim();
+    const c = q ? await geocode(q) : (p => ({ label: p.name.split("・").pop(), lat: p.lat, lng: p.lng }))(PRESETS[+citySel.value]);
+    await mapsLoaded;
+    svService = svService || new google.maps.StreetViewService();
+    saveName();
+    botMode = true; isHost = true; ch = null;
+    room = { code: "BOT", center: c, radius: +$("radius").value, dur: +$("dur").value };
+    centerLL = new google.maps.LatLng(c.lat, c.lng);
+    const n = +$("botN").value, meOni = $("botRole").value === "oni";
+    players = {}; bots = [];
+    const used = new Set();
+    for (let i = 0; i < n; i++) {
+      const cid = rand(CHARS).id;
+      let name = rand(BOT_NAMES[cid]); while (used.has(name)) name = name + "2"; used.add(name);
+      const role = meOni ? "runner" : (i === 0 ? "oni" : "runner");
+      let d = null;
+      for (let t = 0; t < 10 && !d; t++) {
+        const pt = role === "oni" ? centerLL : google.maps.geometry.spherical.computeOffset(centerLL, room.radius * (.3 + .6 * Math.random()), Math.random() * 360);
+        d = await panoData({ location: pt, radius: 100, source: google.maps.StreetViewSource.OUTDOOR });
+        if (d && D(d.ll, centerLL) > room.radius) d = null;
+      }
+      if (!d) throw new Error("この範囲にBOTが歩ける道が見つかりませんでした。場所か範囲を変えてください。");
+      const b = { id: "bot" + i, name, char: cid, look: randomLook(cid), role, pano: d.pano, host: false };
+      bots.push(b); players[b.id] = { ...b, lat: d.ll.lat(), lng: d.ll.lng() };
+    }
+    const now = Date.now();
+    const m = { type: "start", bot: true, ids: [myId, ...bots.map(b => b.id)], oni: meOni ? myId : "bot0", room, startAt: now + 1500, endAt: now + 1500 + room.dur * 60000 };
+    game = m; ended = false; myRole = meOni ? "oni" : "runner"; freezeUntil = m.startAt + 20000;
+    players[myId] = payload();
+    $("start").hidden = true;
+    await beginPlay();
+    clearInterval(botTimer); botTimer = setInterval(botTick, +$("botSpeed").value);
+  } catch (e) { botMode = false; isHost = false; $("start").hidden = false; showErr(e.message); }
+});
+async function botTick(){
+  if (!game || ended || !myPos) return;
+  const everyone = Object.values(players).filter(p => game.ids.includes(p.id) && p.lat != null);
+  for (const b of bots) {
+    const me = players[b.id];
+    if (me.role === "oni" && Date.now() < freezeUntil) continue;
+    const cur = await panoData({ pano: b.pano }); if (!cur || !cur.links.length) continue;
+    const here = new google.maps.LatLng(me.lat, me.lng);
+    // 追いかける相手 / 逃げる相手
+    const targets = everyone.filter(p => p.id !== b.id && (me.role === "oni" ? p.role === "runner" : p.role === "oni"));
+    let tgt = null, td = Infinity;
+    targets.forEach(p => { const d = D(here, new google.maps.LatLng(p.lat, p.lng)); if (d < td) { td = d; tgt = p; } });
+    let opts = cur.links.map(l => {
+      const est = google.maps.geometry.spherical.computeOffset(here, 12, l.heading);
+      if (D(est, centerLL) > room.radius) return null;
+      let score = Math.random() * 10;
+      if (tgt) {
+        const dd = D(est, new google.maps.LatLng(tgt.lat, tgt.lng));
+        score += me.role === "oni" ? -dd : (td < 200 ? dd : 0);
+      }
+      return { l, score };
+    }).filter(Boolean);
+    if (!opts.length) continue;
+    const wander = me.role === "oni" ? .15 : .3;
+    const pick = Math.random() < wander ? rand(opts) : opts.sort((a, b) => b.score - a.score)[0];
+    const nx = await panoData({ pano: pick.l.pano }); if (!nx) continue;
+    b.pano = nx.pano; me.lat = nx.ll.lat(); me.lng = nx.ll.lng();
+    // 鬼BOTのタッチ
+    if (me.role === "oni") {
+      const hereN = nx.ll;
+      everyone.filter(p => p.role === "runner" && p.id !== b.id).forEach(p => {
+        const pl = p.id === myId ? myPos : new google.maps.LatLng(p.lat, p.lng);
+        if (pl && D(hereN, pl) <= 18) onGame({ type: "tag", target: p.id, by: b.id, byName: me.name });
+      });
+    }
+  }
+  renderOthers(); updateRadar(); checkEnd();
+}
+
 function flash(){ const f = $("flash"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
 
 // ---------- キャラ表示(散歩版と共通) ----------

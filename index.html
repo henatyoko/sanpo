@@ -236,45 +236,217 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 @media (prefers-reduced-motion:reduce){#say{animation:none}}
 @media (max-width:560px){#hiro{height:min(24vh,190px);bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
 
-#goBox button{flex:none;white-space:nowrap} @media (max-width:560px){#goBox{top:calc(78px + env(safe-area-inset-top,0px));bottom:auto}}</style>
+#goBox button{flex:none;white-space:nowrap} @media (max-width:560px){#goBox{top:calc(78px + env(safe-area-inset-top,0px));bottom:auto}}
+/* ===== 鬼ごっこ版 追加 ===== */
+:root{ --oni:#d9453a; }
+.screen{
+  position:fixed;inset:0;display:grid;place-items:center;
+  padding:24px 16px;
+  background:
+    radial-gradient(120% 80% at 80% 0%, rgba(217,69,58,.16), transparent 60%),
+    linear-gradient(180deg,#22372c,#16211b);
+  z-index:20;overflow:auto;
+}
+.screen .card{max-width:460px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;background:rgba(255,255,255,.05);padding:4px;border-radius:999px}
+.tabs button{border:0;border-radius:999px;padding:10px;background:transparent;color:var(--on-glass);font-weight:700}
+.tabs button[aria-pressed="true"]{background:var(--paper);color:var(--ink)}
+.pane{display:grid;gap:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ghost{border:1px solid var(--glass-line);background:transparent;color:var(--on-glass);border-radius:999px;padding:10px 16px;font-weight:700}
+.hint a{color:var(--lantern)}
+/* 着せ替え */
+.dress{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:start;background:rgba(255,255,255,.04);border:1px solid var(--glass-line);border-radius:16px;padding:12px}
+.preview{height:170px;display:grid;place-items:center}
+.preview svg{height:100%;width:auto;max-width:100%}
+.custom{display:grid;gap:10px}
+.opt .lbl{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.sws{display:flex;flex-wrap:wrap;gap:6px}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.sw[aria-pressed="true"]{border-color:var(--lantern);box-shadow:0 0 0 2px rgba(233,162,59,.35)}
+.tx{border:1px solid var(--glass-line);border-radius:999px;background:transparent;color:var(--on-glass);padding:5px 10px;font-size:12px;font-weight:700}
+.tx[aria-pressed="true"]{background:var(--lantern);color:#2a1c05;border-color:var(--lantern)}
+@media (max-width:420px){.dress{grid-template-columns:90px 1fr}.preview{height:140px}}
+/* ロビー */
+.eyebrow{letter-spacing:.2em;color:var(--lantern);font-size:12px}
+.code{font-size:56px;font-weight:500;letter-spacing:.18em;line-height:1}
+.plist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.plist li{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);border-radius:12px;padding:6px 12px 6px 6px;font-weight:700}
+.plist svg{width:40px;height:40px;flex:none}
+.plist .badge{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.1);color:var(--muted)}
+.plist .badge.oni{background:var(--oni);color:#fff}
+.plist .badge.win{background:var(--lantern);color:#2a1c05}
+/* ゲームHUD */
+#ghud{
+  top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:10px 14px;
+  display:grid;grid-template-columns:repeat(3,auto);gap:4px 16px;
+}
+#ghud .k{font-size:11px;color:var(--muted);letter-spacing:.08em}
+#ghud .v{font-size:18px}
+#ghud .v.oni{color:#ff8a7f}
+#radar{
+  top:calc(12px + env(safe-area-inset-top,0px));right:12px;padding:8px 12px;
+  display:flex;align-items:center;gap:8px;max-width:min(52vw,260px);font-size:13px;line-height:1.4;font-weight:700;
+}
+#radar.hot{background:rgba(160,30,24,.82)}
+#rArrow{width:30px;height:30px;flex:none;transition:transform .3s}
+@media (max-width:560px){
+  #radar{top:calc(78px + env(safe-area-inset-top,0px));left:12px;right:auto;max-width:calc(100% - 24px)}
+}
+#tagBtn{
+  position:fixed;z-index:8;right:16px;top:50%;transform:translateY(-50%);
+  width:96px;height:96px;border-radius:50%;border:4px solid #fff;
+  background:var(--oni);color:#fff;font-weight:900;font-size:20px;letter-spacing:.04em;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);animation:pulse 1s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.07)}}
+#freeze{
+  position:fixed;z-index:9;left:50%;top:38%;transform:translate(-50%,-50%);
+  text-align:center;background:var(--glass);border:1px solid var(--glass-line);border-radius:20px;padding:16px 28px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+#freeze .big{font-size:64px;line-height:1;color:#ff8a7f}
+#freeze p{margin:6px 0 0;font-weight:700}
+#others{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.sprite{position:absolute;transform:translate(-50%,-100%);aspect-ratio:120/200}
+.sprite svg{width:100%;height:100%;overflow:visible;display:block}
+.sprite .tag{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:11px;font-weight:700;background:var(--glass);color:var(--on-glass);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.sprite.oni .tag{background:var(--oni);color:#fff}
+@media (prefers-reduced-motion:reduce){#tagBtn{animation:none}}
+.tabs.mode{grid-template-columns:1fr 1fr;padding:5px}
+.tabs.mode button{padding:12px;font-size:16px}
+#oniPane{display:grid;gap:14px}
+.preview .scooter,.sprite .scooter,.preview .rear,.sprite .rear{display:none}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 </head>
 <body>
-
-<!-- 起動画面 -->
+<!-- はじめの画面 -->
 <section id="start">
   <div class="card">
     <div class="brand">
       <small>STREET VIEW STROLL</small>
       <h1>ぶらり散歩</h1>
-      <p>好きなキャラと一緒に、本物の街並みをぶらぶら。<br>つぶやいたり、寄り道したり、おみやげが増えたり。</p>
+      <p>好きなキャラと、本物の街並みをぶらぶら。<br>ひとりでお散歩も、みんなで鬼ごっこも。</p>
     </div>
 
     <div class="field">
-      <span class="lbl">だれと行く？</span>
+      <label for="pname">なまえ</label>
+      <input id="pname" type="text" maxlength="10" autocomplete="off" placeholder="例：ゆきこ">
+    </div>
+    <div class="field">
+      <span class="lbl">キャラ</span>
       <div class="chars" id="chars"></div>
     </div>
-    <div class="field">
-      <label for="addr">どこへ行く？（住所や場所の名前）</label>
-      <input id="addr" type="text" autocomplete="off" placeholder="例：東京都台東区浅草2-3-1、京都駅">
-    </div>
-    <div class="field">
-      <label for="city">または、おすすめの街から選ぶ</label>
-      <select id="city"></select>
+    <div class="dress">
+      <div class="preview" id="preview" aria-hidden="true"></div>
+      <div class="custom" id="custom"></div>
     </div>
 
-    <div class="field" id="keyField">
-      <label for="apikey">Google Maps APIキー</label>
-      <input id="apikey" type="password" autocomplete="off" placeholder="AIza...">
-      <p class="hint">キーはこのページを閉じると消えます。公開するときはHTML内の API_KEY に書き込んでください。</p>
+    <div class="tabs mode">
+      <button type="button" id="modeWalk" aria-pressed="true">お散歩</button>
+      <button type="button" id="modeOni" aria-pressed="false">鬼ごっこ</button>
     </div>
 
-    <button class="go" id="goBtn">歩きはじめる</button>
+    <div class="pane" id="walkPane">
+      <div class="field">
+        <label for="waddr">どこへ行く？（住所や場所の名前）</label>
+        <input id="waddr" type="text" autocomplete="off" placeholder="例：東京都台東区浅草2-3-1、京都駅">
+      </div>
+      <div class="field">
+        <label for="wcity">または、おすすめの街から選ぶ</label>
+        <select id="wcity"></select>
+      </div>
+      <button class="go" id="walkBtn">歩きはじめる</button>
+    </div>
+
+    <div id="oniPane" hidden>
+    <div class="tabs">
+      <button type="button" id="tabMake" aria-pressed="true">部屋をつくる</button>
+      <button type="button" id="tabJoin" aria-pressed="false">部屋に入る</button>
+      <button type="button" id="tabBot" aria-pressed="false">BOTとあそぶ</button>
+    </div>
+
+    <div class="pane" id="makePane">
+      <div class="field">
+        <label for="addr">どこでやる？（住所や場所の名前）</label>
+        <input id="addr" type="text" autocomplete="off" placeholder="例：浅草寺、東京都台東区浅草2-3-1">
+      </div>
+      <div class="field">
+        <label for="city">または、おすすめの街から選ぶ</label>
+        <select id="city"></select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="radius">範囲（半径）</label>
+          <select id="radius"><option value="200">200 m</option><option value="300" selected>300 m</option><option value="500">500 m</option><option value="800">800 m</option></select>
+        </div>
+        <div class="field">
+          <label for="dur">時間</label>
+          <select id="dur"><option value="5">5 分</option><option value="10" selected>10 分</option><option value="15">15 分</option></select>
+        </div>
+      </div>
+      <div class="pane" id="botPane" hidden>
+        <div class="row2">
+          <div class="field">
+            <label for="botRole">あなたは</label>
+            <select id="botRole"><option value="runner">逃げる</option><option value="oni">鬼</option></select>
+          </div>
+          <div class="field">
+            <label for="botN">BOTの数</label>
+            <select id="botN"><option value="1">1人</option><option value="2" selected>2人</option><option value="3">3人</option></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="botSpeed">BOTの速さ</label>
+          <select id="botSpeed"><option value="4200">ゆっくり</option><option value="3000" selected>ふつう</option><option value="2000">はやい</option></select>
+        </div>
+        <button class="go" id="botBtn">BOTとあそぶ</button>
+      </div>
+      <button class="go" id="makeBtn">部屋をつくる</button>
+    </div>
+
+    <div class="pane" id="joinPane" hidden>
+      <div class="field">
+        <label for="code">あいことば（4けたの数字）</label>
+        <input id="code" type="text" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="例：3829">
+      </div>
+      <button class="go" id="joinBtn">部屋に入る</button>
+    </div>
+
+    <p class="hint">遊び方：鬼は最初の20秒は動けません。鬼が近く（20m以内）まで来ると「タッチ」でつかまえられます。つかまった人も鬼になって、時間まで逃げきれば逃げる人の勝ちです。</p>
+    </div>
     <p class="err" id="err" hidden></p>
   </div>
 </section>
 
-<!-- 散歩画面 -->
+<!-- ロビー -->
+<section id="lobby" class="screen" hidden>
+  <div class="card">
+    <div class="brand">
+      <span class="eyebrow">あいことば</span>
+      <div class="code num" id="lCode">----</div>
+      <p id="lInfo"></p>
+    </div>
+    <ul class="plist" id="lPlayers"></ul>
+    <button class="go" id="startBtn">スタート</button>
+    <p class="hint" id="lWait"></p>
+    <button class="ghost" id="leaveBtn" type="button">部屋を出る</button>
+  </div>
+</section>
+
+<!-- 結果 -->
+<section id="result" class="screen" hidden>
+  <div class="card">
+    <div class="brand"><span class="eyebrow">けっか</span><h1 id="rTitle"></h1><p id="rMsg"></p></div>
+    <ul class="plist" id="rList"></ul>
+    <button class="go" id="againBtn">ロビーにもどる</button>
+  </div>
+</section>
+
+<!-- ゲーム画面 -->
 <div id="panoWrap"><div id="pano"></div></div>
+<div id="others"></div>
 
 <div class="hud" id="stats" hidden>
   <div><div class="k">歩いた距離</div><div class="v num" id="sDist">0 m</div></div>
@@ -289,8 +461,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <div class="row"><input id="goAddr" type="text" autocomplete="off" placeholder="例：東京タワー"><button type="submit">行く</button></div>
   <p class="err" id="goErr" hidden></p>
 </form>
-<div class="hud" id="mapbox" hidden><div id="minimap"></div></div>
-
 <div class="hud" id="log" hidden>
   <h2>撮った景色</h2>
   <p class="empty" id="logEmpty">気になる景色で「記録」を押すと、ここに残ります。</p>
@@ -300,7 +470,25 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <ol id="souvList"></ol>
 </div>
 
+<div class="hud" id="ghud" hidden>
+  <div><div class="k">あなた</div><div class="v" id="gRole">-</div></div>
+  <div><div class="k">のこり時間</div><div class="v num" id="gTime">0:00</div></div>
+  <div><div class="k">逃げてる人</div><div class="v num" id="gLeft">0</div></div>
+</div>
+<div class="hud" id="radar" hidden>
+  <svg id="rArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V4M5 11l7-7 7 7"/></svg>
+  <span id="rText"></span>
+</div>
+<button id="tagBtn" type="button" hidden>タッチ！</button>
+<div id="freeze" hidden><div class="big num" id="fCount">20</div><p>鬼はあと少し待ってね</p></div>
+
+<div class="hud" id="mapbox" hidden><div id="minimap"></div></div>
+
 <nav class="hud" id="bar" hidden>
+  <button id="homeBtn" title="はじめの画面にもどる">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg>
+    <span>もどる</span>
+  </button>
   <button id="autoBtn" aria-pressed="false" title="おまかせで歩く">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v4M7 12l3-4 4 1 3 4M11 15l-1-5"/></svg>
     <span id="autoLabel">おまかせ</span>
@@ -311,7 +499,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   </button>
   <button id="snapBtn" title="この場所を記録">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-    <span>記録</span>
+    <span id="snapLabel">記録</span>
   </button>
   <button id="logBtn" aria-pressed="false" title="見つけた場所">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 12h14M5 19h9"/></svg>
@@ -330,7 +518,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <span>ワープ</span>
   </button>
 </nav>
-
 
 <!-- 歩く人(後ろ姿) -->
 <div id="hiro" class="riding" hidden aria-label="前を進むわたし">
@@ -414,191 +601,26 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
 <div id="flash"></div>
 <div id="toast" role="status"></div>
-
 <script>
-// ▼ 公開するときはここにAPIキーを書く(HTTPリファラー制限を必ずかけてください)
+// ▼ Google Maps(HTTPリファラー制限つき)と Supabase(公開用キー)
 const API_KEY = "AIzaSyARFqWlDAY_BPyOP7L6DfH6v_-T5LJWz9Q";
+const SB_URL = "https://lbmklokiiobgakuaohgo.supabase.co";
+const SB_KEY = "sb_publishable_oMfRvXcoRmzxgYJlkzcZ5g_EcTWrpq3";
 
-// 散歩できる街(中心の緯度経度と、ワープする範囲の半径 m)
-const CITIES = [
-  { name: "東京・浅草",        lat: 35.7116, lng: 139.7966, r: 1200 },
-  { name: "東京・谷中/根津",    lat: 35.7255, lng: 139.7660, r: 900 },
-  { name: "東京・下北沢",       lat: 35.6614, lng: 139.6680, r: 800 },
-  { name: "鎌倉",              lat: 35.3190, lng: 139.5500, r: 1500 },
-  { name: "京都・祇園/東山",    lat: 35.0037, lng: 135.7788, r: 1200 },
-  { name: "大阪・中崎町",       lat: 34.7090, lng: 135.5040, r: 700 },
-  { name: "尾道",              lat: 34.4090, lng: 133.2030, r: 1000 },
-  { name: "ソウル・益善洞",     lat: 37.5740, lng: 126.9895, r: 700 },
-  { name: "台北・大稲埕",       lat: 25.0560, lng: 121.5100, r: 900 },
-  { name: "バンコク・旧市街",    lat: 13.7560, lng: 100.4990, r: 1500 },
-  { name: "パリ・マレ地区",      lat: 48.8590, lng: 2.3600,  r: 1000 },
-  { name: "リスボン・アルファマ", lat: 38.7115, lng: -9.1290, r: 700 },
-  { name: "ニューヨーク・ソーホー",lat: 40.7233, lng: -74.0030, r: 900 },
-  { name: "おまかせ(どこかの街)", random: true }
+const PRESETS = [
+  { name: "東京・浅草",        lat: 35.7116, lng: 139.7966 },
+  { name: "東京・谷中/根津",    lat: 35.7255, lng: 139.7660 },
+  { name: "東京・下北沢",       lat: 35.6614, lng: 139.6680 },
+  { name: "鎌倉",              lat: 35.3190, lng: 139.5500 },
+  { name: "京都・祇園/東山",    lat: 35.0037, lng: 135.7788 },
+  { name: "大阪・中崎町",       lat: 34.7090, lng: 135.5040 },
+  { name: "尾道",              lat: 34.4090, lng: 133.2030 },
+  { name: "パリ・マレ地区",      lat: 48.8590, lng: 2.3600 },
+  { name: "ニューヨーク・ソーホー",lat: 40.7233, lng: -74.0030 }
 ];
-
 const $ = id => document.getElementById(id);
-let addrQuery = "";
-
-// 住所・場所の名前 → 緯度経度
-async function geocode(q){
-  try {
-    const r = await new google.maps.Geocoder().geocode({ address: q });
-    const res = r.results[0], loc = res.geometry.location;
-    return { name: `${q} ${res.formatted_address}`, label: q, lat: loc.lat(), lng: loc.lng(), r: 600 };
-  } catch (e) {
-    const m = String(e && (e.code || e.message) || e);
-    if (/REQUEST_DENIED/.test(m)) throw new Error("住所検索が使えません。Cloud Consoleで「Geocoding API」を有効にして、APIキーの「APIの制限」にも追加してください。");
-    if (/ZERO_RESULTS/.test(m)) throw new Error(`「${q}」が見つかりませんでした。書き方を変えてみてください。`);
-    throw new Error("住所を調べられませんでした。少し待ってからもう一度試してください。");
-  }
-}
-const citySel = $("city");
-CITIES.forEach((c, i) => {
-  const o = document.createElement("option");
-  o.value = i; o.textContent = c.name; citySel.appendChild(o);
-});
-if (API_KEY) $("keyField").hidden = true;
-
-let pano, svService, minimap, marker, pathLine;
-let city, lastPos = null, dist = 0, steps = 0, startTime = 0, warping = false;
-let autoTimer = null, logItems = [];
-
-function showErr(msg){ const e = $("err"); e.textContent = msg; e.hidden = false; $("goBtn").disabled = false; }
-
-// Googleのエラー内容を読み取って、日本語で原因を表示する
-const MAP_ERRORS = {
-  RefererNotAllowedMapError: "キーの「ウェブサイト」制限で、このページが許可されていません。パソコン上で試すときは「アプリケーションの制限」を「なし」にしてください。",
-  ApiNotActivatedMapError: "Maps JavaScript API が有効になっていません。Cloud Consoleで「Maps JavaScript API」を開き「有効にする」を押してください。",
-  BillingNotEnabledMapError: "お支払い情報がプロジェクトに紐づいていません。Cloud Consoleの「お支払い」で設定してください。",
-  ApiTargetBlockedMapError: "キーの「APIの制限」で Maps JavaScript API が許可されていません。キーの設定でチェックを入れてください。",
-  InvalidKeyMapError: "APIキーの値が正しくありません。コピーし直して貼り付けてください。",
-  MissingKeyMapError: "APIキーが入っていません。",
-  ExpiredKeyMapError: "APIキーが無効になっています。新しいキーを作ってください。",
-  DeletedApiProjectMapError: "キーのプロジェクトが削除されています。新しいキーを作ってください。"
-};
-let lastMapError = "";
-const origConsoleError = console.error.bind(console);
-console.error = (...args) => {
-  const m = args.join(" ").match(/([A-Za-z]+MapError)/);
-  if (m) { lastMapError = m[1]; explainMapError(); }
-  origConsoleError(...args);
-};
-function explainMapError(){
-  const why = MAP_ERRORS[lastMapError] || `Googleから「${lastMapError}」というエラーが返りました。`;
-  $("start").hidden = false;
-  showErr(`${why}（エラー名: ${lastMapError}）設定を変えたら数分待ってから再読み込みしてください。`);
-}
-window.gm_authFailure = () => {
-  setTimeout(() => {
-    if (lastMapError) explainMapError();
-    else showErr("APIキーが使えませんでした。キーの値、Maps JavaScript APIの有効化、お支払い情報、キーの制限を確認してください。");
-  }, 300);
-};
-
-$("goBtn").addEventListener("click", () => {
-  const key = API_KEY || $("apikey").value.trim();
-  if (!key) { showErr("APIキーを入力してください。"); return; }
-  $("goBtn").disabled = true; $("err").hidden = true;
-  addrQuery = $("addr").value.trim();
-  city = CITIES[+citySel.value];
-  if (city.random) city = CITIES[Math.floor(Math.random() * (CITIES.length - 1))];
-  if (window.google?.maps) { initApp(); return; }
-  const s = document.createElement("script");
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=geometry&language=ja&callback=initApp&loading=async`;
-  s.async = true;
-  s.onerror = () => showErr("Googleマップを読み込めませんでした。通信環境を確認してください。");
-  document.head.appendChild(s);
-});
-
-window.initApp = async function(){
-  try { await startApp(); }
-  catch (e) { $("start").hidden = false; showErr(`うまく起動できませんでした（${e && e.message || e}）。この文をそのままClaudeに送ってください。`); }
-};
-async function startApp(){
-  svService = new google.maps.StreetViewService();
-  pano = new google.maps.StreetViewPanorama($("pano"), {
-    addressControl: false, fullscreenControl: false, motionTracking: false,
-    motionTrackingControl: false, zoomControl: false, panControl: false,
-    linksControl: true, showRoadLabels: true, clickToGo: true, visible: true
-  });
-  minimap = new google.maps.Map($("minimap"), {
-    zoom: 16, disableDefaultUI: true, gestureHandling: "greedy", clickableIcons: false,
-    styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
-  });
-  pathLine = new google.maps.Polyline({ map: minimap, strokeColor: "#e9a23b", strokeWeight: 4, strokeOpacity: .9 });
-  marker = new google.maps.Marker({ map: minimap, icon: {
-    path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: "#3f6b52", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2
-  }});
-  minimap.addListener("click", e => jumpTo(e.latLng, 60));
-
-  pano.addListener("position_changed", onMove);
-  pano.addListener("pano_changed", () => {
-    const d = pano.getLocation()?.description;
-    $("place").textContent = d || ""; $("place").classList.remove("fade"); clearTimeout(window.placeT); window.placeT = setTimeout(() => $("place").classList.add("fade"), 3500);
-  });
-
-  if (addrQuery) {
-    try { city = await geocode(addrQuery); }
-    catch (e) { $("start").hidden = false; showErr(e.message); return; }
-  }
-  const ok = await warp(true);
-  if (!ok) { $("start").hidden = false; showErr("この街の近くでストリートビューが見つかりませんでした。別の街を選んでください。"); return; }
-  $("start").hidden = true;
-  applyChar();
-  ["stats","place","bar","hiro"].forEach(id => $(id).hidden = false);
-  startTime = Date.now();
-  setInterval(tick, 1000);
-  setTimeout(() => google.maps.event.trigger(pano, "resize"), 300);
-  setTimeout(() => say(char.hello(shortName())), 900);
-  resetIdle();
-}
-
-function onMove(){
-  const p = pano.getPosition(); if (!p) return;
-  if (lastPos && !warping) {
-    const d = google.maps.geometry.spherical.computeDistanceBetween(lastPos, p);
-    if (d < 150) { dist += d; steps++; pathLine.getPath().push(p); hiroWalk(); chatter(d); }
-  } else {
-    pathLine.setPath([p]);
-  }
-  warping = false; lastPos = p;
-  marker.setPosition(p); minimap.panTo(p);
-  $("sDist").textContent = dist < 1000 ? `${Math.round(dist)} m` : `${(dist/1000).toFixed(2)} km`;
-  $("sSteps").textContent = steps;
-}
-
-// ---------- つぶやき・できごと ----------
-const TALK = ["いい天気だねえ","この道、ちょっと好き","あっちの路地、気になる","歩くの楽しい〜","おなかすいてきた",
-  "足が軽い！","ちょっと休憩したいかも","この辺、住んでみたいな","あ、いい匂い","知らない道ってわくわくする",
-  "この看板、いい味出してる","次の角、曲がってみよっか","写真撮りたくなる景色","ここ、夜に来てもよさそう"];
-const LOCAL = {
-  "浅草":{talk:["雷門、どっちだっけ","人力車かっこいい","着物の人がいっぱい"],souv:["人形焼","雷おこし","きびだんご"]},
-  "谷中":{talk:["猫いないかな","商店街の匂いがする","お寺が多いね"],souv:["谷中メンチ","猫の手ぬぐい","せんべい"]},
-  "下北沢":{talk:["古着屋のぞきたい","カレーの匂いがする","ライブハウスいっぱい"],souv:["古着のシャツ","スパイスカレー","中古レコード"]},
-  "鎌倉":{talk:["海の匂いする？","坂の上から海が見えるかな","江ノ電乗りたい"],souv:["鳩サブレー","しらす丼","紫いもソフト"]},
-  "京都":{talk:["はんなりしてきた","抹茶パフェ…","石畳いいね"],souv:["生八ツ橋","抹茶パフェ","あぶらとり紙"]},
-  "中崎町":{talk:["カフェ多いね","雑貨屋さん入りたい","レトロな建物かわいい"],souv:["手作りの雑貨","古本","クリームソーダ"]},
-  "尾道":{talk:["坂がきつい…","猫の細道ってどこ？","海と山が近い！"],souv:["尾道ラーメン","はっさくゼリー","猫の置物"]},
-  "ソウル":{talk:["ホットク食べたい","韓屋、すてき","ハングル読めたらなあ"],souv:["ホットク","韓国コスメ","トッポッキ"]},
-  "台北":{talk:["タピオカ飲もう","魯肉飯のにおい！","漢方の匂いがする"],souv:["パイナップルケーキ","タピオカミルクティー","烏龍茶"]},
-  "バンコク":{talk:["暑い〜","トゥクトゥク乗りたい","屋台の匂いがたまらない"],souv:["マンゴー","タイカレー","象の置物"]},
-  "パリ":{talk:["おしゃれすぎる","カフェでひと休みしたい","石造りの建物すてき"],souv:["クロワッサン","マカロン","古いポストカード"]},
-  "リスボン":{talk:["坂と路面電車！","タイルがきれい","海風が気持ちいい"],souv:["エッグタルト","タイルのコースター","いわしの缶詰"]},
-  "ニューヨーク":{talk:["映画みたい","ビルが高い！","イエローキャブだ"],souv:["ベーグル","ホットドッグ","I♥NYのTシャツ"]}
-};
-const HAPPENINGS = [
-  {t:"猫に会った", s:"あ、猫！なでたい…"},
-  {t:"自販機で飲み物を買った", s:"のど渇いた。ちょっと一本"},
-  {t:"きれいな花を見つけた", s:"このお花、かわいい"},
-  {t:"道を聞かれた", s:"え、道？わたしも迷子です…"},
-  {t:"ベンチでひと休み", s:"ふう、ちょっと座ろ"},
-  {t:"いい感じの路地を発見", s:"この路地、秘密の抜け道っぽい"},
-  {t:"犬の散歩とすれ違った", s:"わんちゃんだ。かわいい〜"},
-  {t:"小さな神社でお参り", s:"いいことありますように"}
-];
-const RIDE_TALK = ["風が気持ちいい〜","スイスイ進む！","車道の左側を安全運転","段差に気をつけよ","歩くより速いね","景色が流れてく〜"];
-let riding = true;
+const rand = a => a[Math.floor(Math.random() * a.length)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 
 // ---------- キャラクター ----------
 const CHARS = [
@@ -690,7 +712,6 @@ const CHARS = [
 <path d="M50 65 C48 69 44 69 43 67 M50 65 C52 69 56 69 57 67" stroke="#3a3a40" stroke-width="1.4" fill="none" stroke-linecap="round"/>
 <path d="M14 58 L32 61 M14 66 L32 65 M86 58 L68 61 M86 66 L68 65" stroke="#f4f4f6" stroke-width="1.2" stroke-linecap="round"/>` }
 ];
-let char = CHARS[0];
 const ANIMAL_HAPPEN = [
   {t:"なでてもらった", s:"なでなで、うれしい"},
   {t:"子どもに手を振られた", s:"あ、手を振ってくれた！"},
@@ -699,56 +720,820 @@ const ANIMAL_HAPPEN = [
   {t:"ほかの動物に会った", s:"あ、おともだち？"},
   {t:"日かげで休んだ", s:"ちょっとだけ休憩"}
 ];
+
+
+// ---------- 着せ替え ----------
+const OPTIONS = {
+  me: [
+    { key:"hairStyle", label:"髪型", type:"text", choices:[["ロング","long"],["ショート","short"]] },
+    { key:"hair", label:"髪の色", type:"color", choices:[["こげ茶","#3d2621"],["黒","#151518"],["茶","#7a4a2a"],["金","#d4ac55"],["ピンク","#d98aa8"],["銀","#b9bcc4"]] },
+    { key:"outfit", label:"服", type:"text", choices:[["ワンピース","dress"],["シャツとズボン","pants"]] },
+    { key:"dress", label:"服の色", type:"color", choices:[["紺","#1f3d6e"],["赤","#b8323a"],["緑","#2f6b4a"],["からし","#c9951c"],["黒","#222226"],["ピンク","#d86b95"],["水色","#5aa7d6"]] },
+    { key:"glasses", label:"メガネ", type:"text", choices:[["なし","none"],["メガネ","glasses"],["サングラス","sun"]] },
+    { key:"acc", label:"小物", type:"text", choices:[["なし","none"],["リボン","ribbon"],["キャップ","cap"]] }
+  ],
+  horse: [ { key:"coat", label:"毛色", type:"color", choices:[["栗毛","#8b5a2b","chestnut"],["黒鹿毛","#4a2e1a","dark"],["芦毛","#b9b9bd","gray"],["白","#eeeae3","white"]] } ],
+  shiba: [ { key:"coat", label:"毛色", type:"color", choices:[["赤柴","#d98b3a","red"],["黒柴","#2a2522","black"],["白柴","#f1e8d8","white"],["胡麻","#a07850","sesame"]] } ],
+  cat:   [ { key:"coat", label:"毛色", type:"color", choices:[["サバトラ","#8d9098","gray"],["茶トラ","#e39a4a","orange"],["黒","#26262b","black"],["白","#f3f1ec","white"]] } ]
+};
+const COATS = {
+  horse: {
+    chestnut:{},
+    dark:{ "#8b5a2b":"#4a2e1a","#7a4b22":"#3e2716","#7f4f24":"#43291a","#6b411d":"#35200f","#a06a36":"#5a3a22","#6e4420":"#2e1c10","#5a3517":"#2a190d","#b58458":"#6b4a33" },
+    gray:{ "#8b5a2b":"#b9b9bd","#7a4b22":"#a7a7ac","#7f4f24":"#aeaeb3","#6b411d":"#96969c","#a06a36":"#cfcfd3","#6e4420":"#8a8a90","#5a3517":"#7d7d83","#2d1a0e":"#6b6b72","#3b2414":"#77777e","#5a3a22":"#8e8e95","#b58458":"#d0cfcf" },
+    white:{ "#8b5a2b":"#eeeae3","#7a4b22":"#e2ddd4","#7f4f24":"#e6e1d8","#6b411d":"#d4cec3","#a06a36":"#f7f4ee","#6e4420":"#cfc8bc","#5a3517":"#c7c0b4","#2d1a0e":"#d8d2c8","#3b2414":"#dcd6cc","#5a3a22":"#c9c2b6","#b58458":"#e9ddd0","#f4ede2":"#ffffff" }
+  },
+  shiba: {
+    red:{},
+    black:{ "#d98b3a":"#2a2522","#b86d25":"#1a1614" },
+    white:{ "#d98b3a":"#f1e8d8","#b86d25":"#e0cdb0" },
+    sesame:{ "#d98b3a":"#a07850","#b86d25":"#7a5838" }
+  },
+  cat: {
+    gray:{},
+    orange:{ "#8d9098":"#e39a4a","#6e7078":"#c47a30","#6a6c74":"#b9692a" },
+    black:{ "#8d9098":"#26262b","#6e7078":"#1c1c20","#6a6c74":"#34343b","#dcdde2":"#26262b" },
+    white:{ "#8d9098":"#f3f1ec","#6e7078":"#e5ded3","#6a6c74":"#e9e6df" }
+  }
+};
+const DEFAULT_LOOK = { me:{hairStyle:"long",hair:"#3d2621",outfit:"dress",dress:"#1f3d6e",pattern:"plain",glasses:"none",acc:"none"}, horse:{coat:"chestnut"}, shiba:{coat:"red"}, cat:{coat:"gray"} };
+const RIBBON_BACK = `<g><path d="M47 27 L60 35 L47 43 Z M73 27 L60 35 L73 43 Z" fill="#e0494f"/><circle cx="60" cy="35" r="3.4" fill="#b83238"/></g>`;
+const RIBBON_FACE = `<g transform="translate(56,6) scale(.7)"><path d="M0 8 L14 16 L0 24 Z M28 8 L14 16 L28 24 Z" fill="#e0494f"/><circle cx="14" cy="16" r="4" fill="#b83238"/></g>`;
+const SUN_FACE = `<g><ellipse cx="42" cy="51" rx="7.5" ry="6" fill="#1d1f24"/><ellipse cx="58" cy="51" rx="7.5" ry="6" fill="#1d1f24"/><path d="M49.5 50 H50.5" stroke="#1d1f24" stroke-width="2"/><ellipse cx="39.5" cy="49" rx="2" ry="1.2" fill="#fff" opacity=".35"/><ellipse cx="55.5" cy="49" rx="2" ry="1.2" fill="#fff" opacity=".35"/></g>`;
+const CAP_BACK = `<g><path d="M29 40 C29 18 44 9 60 9 C76 9 91 18 91 40 C80 33 40 33 29 40 Z" fill="#c0392b"/><path d="M52 34 C56 31 64 31 68 34" stroke="#f3efe4" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="60" cy="11" r="2.2" fill="#8e2a20"/></g>`;
+const CAP_FACE = `<g><path d="M24 36 C24 16 37 8 50 8 C63 8 76 16 76 36 C68 31 32 31 24 36 Z" fill="#c0392b"/><path d="M22 36 C32 29 68 29 78 36 C68 42 32 42 22 36 Z" fill="#8e2a20"/><circle cx="50" cy="10" r="2" fill="#8e2a20"/></g>`;
+// 髪型・服の形を差し替える(色を塗る前に行う)
+const HAIR_LONG_B = "M60 14 C81 14 91 29 91 48 C91 60 89 68 91 76 C93 82 97 86 100 88 C94 91 89 89 86 86 L85 94 C81 90 79 88 77 88 L73 96 L67 88 L60 95 L53 88 L47 96 L43 88 C41 88 39 90 35 94 L34 86 C31 89 26 91 20 88 C23 86 27 82 29 76 C31 68 29 60 29 48 C29 29 39 14 60 14 Z";
+const HAIR_SHORT_B = "M60 12 C77 12 87 23 87 38 C87 46 86 51 83 55 C76 59 68 60 60 60 C52 60 44 59 37 55 C34 51 33 46 33 38 C33 23 43 12 60 12 Z";
+const LINES_LONG_B = "M60 18 C54 32 51 50 52 80 M60 18 C66 32 69 50 68 80 M45 24 C38 38 37 58 40 82 M75 24 C82 38 83 58 80 82";
+const LINES_SHORT_B = "M60 16 C57 26 56 38 57 52 M60 16 C63 26 64 38 63 52 M48 20 C45 30 44 40 45 52 M72 20 C75 30 76 40 75 52";
+const HAIR_LONG_F = "M50 12 C71 12 82 27 81 46 C80 58 83 66 90 74 C82 77 77 73 74 70 L72 78 C68 74 66 72 64 72 L50 80 L36 72 C34 72 32 74 28 78 L26 70 C23 73 18 77 10 74 C17 66 20 58 19 46 C18 27 29 12 50 12 Z";
+const HAIR_SHORT_F = "M50 13 C67 13 76 24 75 40 L73 44 L27 44 L25 40 C24 24 33 13 50 13 Z";
+const BANGS_LONG_F = "M28 44 C29 25 39 17 50 17 C62 17 72 25 72 44 L67 36 L63 43 L58 34 L54 42 L50 33 L46 42 L42 34 L37 43 L33 36 Z";
+const BANGS_SHORT_F = "M27 41 C27 23 38 14 50 14 C63 14 73 23 73 41 L70 33 L66 37 L62 30 L57 35 L52 28 L47 34 L42 29 L38 36 L33 31 L30 37 Z";
+const EARS_F = '<ellipse cx="29.5" cy="53" rx="3.2" ry="4.6" fill="#efc6aa"/><ellipse cx="70.5" cy="53" rx="3.2" ry="4.6" fill="#efc6aa"/><path d="M29.2 51 C28 52.5 28.3 54.5 29.6 55.5 M70.8 51 C72 52.5 71.7 54.5 70.4 55.5" stroke="#d9a383" stroke-width="1" fill="none" stroke-linecap="round"/>';
+const EARS_B = '<ellipse cx="32.5" cy="50" rx="3.2" ry="5" fill="#e8bea0"/><ellipse cx="87.5" cy="50" rx="3.2" ry="5" fill="#e8bea0"/>';
+function reshapeMe(back, face, look){
+  if (look.hairStyle === "short") {
+    back = back.split(HAIR_LONG_B).join(HAIR_SHORT_B).split(LINES_LONG_B).join(LINES_SHORT_B);
+    face = face.split(HAIR_LONG_F).join(HAIR_SHORT_F).split(BANGS_LONG_F).join(BANGS_SHORT_F)
+      .replace('<ellipse cx="50" cy="47" rx="21" ry="23"', EARS_F + '<ellipse cx="50" cy="47" rx="21" ry="23"')
+      .split('fill="#f09a9a" opacity=".45"').join('fill="#f09a9a" opacity=".18"');
+    face += `<path d="M37.5 44.5 L45.5 43.5 M54.5 43.5 L62.5 44.5" stroke="${look.hair}" stroke-width="2.2" stroke-linecap="round"/>`;
+    back = back.replace(`<path d="${HAIR_SHORT_B}"`, EARS_B + `<path d="${HAIR_SHORT_B}"`);
+  }
+  if (look.outfit === "pants") {
+    const P = "#34384a";
+    back = back
+      .split('x="45" y="140" width="13" height="38" rx="6" fill="#f0cfb6"').join(`x="43" y="120" width="16" height="58" rx="6" fill="${P}"`)
+      .split('x="45" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="43" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
+      .split('x="62" y="140" width="13" height="38" rx="6" fill="#f0cfb6"').join(`x="61" y="120" width="16" height="58" rx="6" fill="${P}"`)
+      .split('x="71" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="73" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
+      .split('M36 82 C44 76 76 76 84 82 L86 104 C92 130 96 150 98 168 C80 176 40 176 22 168 C24 150 28 130 34 104 Z').join('M38 81 C45 77 75 77 82 81 L84 100 L84 127 C72 129 48 129 36 127 L36 100 Z')
+      .split('M34 104 C50 110 70 110 86 104').join('M36 124 C48 126 72 126 84 124')
+      .split('M22 168 C40 176 80 176 98 168').join('M51 79 C55 83 65 83 69 79')
+      .split('x="23" y="84" width="16" height="22" rx="7"').join('x="25" y="82" width="15" height="20" rx="4"')
+      .split('x="81" y="84" width="16" height="22" rx="7"').join('x="80" y="82" width="15" height="20" rx="4"');
+  }
+  return [back, face];
+}
+const GLASSES_FACE = `<g fill="none" stroke="#2a2a2e" stroke-width="1.8"><circle cx="42" cy="51" r="6.5"/><circle cx="58" cy="51" r="6.5"/><path d="M48.5 51 H51.5"/></g>`;
+
+function shade(hex, amt){
+  const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const t = amt < 0 ? 0 : 255, p = Math.abs(amt);
+  r = Math.round(r + (t - r) * p); g = Math.round(g + (t - g) * p); b = Math.round(b + (t - b) * p);
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+function recolor(str, map){
+  // 置き換えがぶつからないよう、いったん目印に置き換えてから色を入れる
+  const keys = Object.keys(map);
+  keys.forEach((k, i) => { str = str.split(k).join(`@@${i}@@`); });
+  keys.forEach((k, i) => { str = str.split(`@@${i}@@`).join(map[k]); });
+  return str;
+}
+function lookMap(c, look){
+  if (c.id === "me") {
+    const d = look.dress, h = look.hair;
+    return { "#1f3d6e": d, "#16305a": shade(d, -.35), "#dfe7f2": d,
+             "#3d2621": h, "#5e3b30": shade(h, .18), "#74493b": shade(h, .32) };
+  }
+  return (COATS[c.id] || {})[look.coat] || {};
+}
+function uniq(str, sfx){
+  return str.replace(/id="([\w-]+)"/g, `id="$1_${sfx}"`).replace(/url\(#([\w-]+)\)/g, `url(#$1_${sfx})`);
+}
+const faceNoBg = f => f.replace(/<circle cx="50" cy="50" r="50"[^>]*?(\/>|><\/circle>)/, "");
+// 見た目を組み立てる → { back, front, face } (SVG文字列)
+function buildLook(cid, look){
+  const c = CHARS.find(x => x.id === cid) || CHARS[0];
+  look = Object.assign({}, DEFAULT_LOOK[c.id], look || {});
+  const map = lookMap(c, look);
+  let back = c.svg, face = c.face;
+  if (c.id === "me") [back, face] = reshapeMe(back, face, look);
+  back = recolor(back, map); face = recolor(face, map);
+  if (c.id === "me" && look.acc === "cap") {
+    const cut = back.lastIndexOf("</g>"); back = back.slice(0, cut) + CAP_BACK + back.slice(cut);
+    face += CAP_FACE;
+  }
+  if (c.id === "me" && look.glasses === "sun") face += SUN_FACE;
+  if (c.id === "me" && look.acc === "ribbon") {
+    const cut = back.lastIndexOf("</g>"); back = back.slice(0, cut) + RIBBON_BACK + back.slice(cut);
+    face += RIBBON_FACE;
+  }
+  if (c.id === "me" && look.glasses === "glasses") face += GLASSES_FACE;
+  const cut = back.lastIndexOf("</g>");
+  const front = back.slice(0, cut) + `<g transform="${c.head}">${faceNoBg(face)}</g>` + back.slice(cut);
+  return { c, back, front, face };
+}
+let spriteSeq = 0;
+const svgFace = (f, sfx) => `<svg viewBox="0 0 100 100" aria-hidden="true">${uniq(f, sfx)}</svg>`;
+
+// ---------- はじめの画面 ----------
+let char = CHARS[0], look = { ...DEFAULT_LOOK.me };
 function setupChars(){
   CHARS[0].svg = $("hiro").innerHTML;
   CHARS[0].face = $("say").querySelector(".face").innerHTML;
   const box = $("chars");
-  CHARS.forEach(c => {
+  CHARS.forEach((c, i) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", c === char);
-    b.innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true">${c.face}</svg><span>${c.name}</span>`;
-    b.addEventListener("click", () => { char = c; [...box.children].forEach(x => x.setAttribute("aria-pressed", x === b)); });
+    b.innerHTML = `${svgFace(buildLook(c.id).face, "chip" + i)}<span>${c.name}</span>`;
+    b.addEventListener("click", () => {
+      char = c; look = { ...DEFAULT_LOOK[c.id] };
+      [...box.children].forEach(x => x.setAttribute("aria-pressed", x === b));
+      renderCustom();
+    });
     box.appendChild(b);
   });
+  renderCustom();
 }
+function renderCustom(){
+  const box = $("custom"); box.innerHTML = "";
+  (OPTIONS[char.id] || []).forEach(o => {
+    const wrap = document.createElement("div"); wrap.className = "opt";
+    wrap.innerHTML = `<span class="lbl">${o.label}</span>`;
+    const sws = document.createElement("div"); sws.className = "sws";
+    o.choices.forEach(ch => {
+      const val = ch[2] || ch[1];
+      const b = document.createElement("button"); b.type = "button";
+      b.className = o.type === "color" ? "sw" : "tx";
+      b.title = ch[0]; b.setAttribute("aria-label", ch[0]);
+      if (o.type === "color") b.style.background = ch[1]; else b.textContent = ch[0];
+      b.setAttribute("aria-pressed", look[o.key] === val);
+      b.addEventListener("click", () => { look[o.key] = val; renderCustom(); });
+      sws.appendChild(b);
+    });
+    wrap.appendChild(sws); box.appendChild(wrap);
+  });
+  const L = buildLook(char.id, look);
+  $("preview").innerHTML = uniq(L.front, "pv").replace('<svg viewBox', '<svg class="pv" viewBox');
+}
+const citySel = $("city");
+PRESETS.forEach((c, i) => { const o = document.createElement("option"); o.value = i; o.textContent = c.name; citySel.appendChild(o); });
+function setTab(t){
+  ["Make","Join","Bot"].forEach(k => $("tab" + k).setAttribute("aria-pressed", k === t));
+  $("makePane").hidden = t === "Join"; $("joinPane").hidden = t !== "Join";
+  $("botPane").hidden = t !== "Bot"; $("makeBtn").hidden = t !== "Make";
+  $("err").hidden = true;
+}
+["Make","Join","Bot"].forEach(k => $("tab" + k).addEventListener("click", () => setTab(k)));
+try { const n = localStorage.getItem("oni_name"); if (n) $("pname").value = n; } catch (e) {}
+
+function showErr(msg){ const e = $("err"); e.textContent = msg; e.hidden = false; $("makeBtn").disabled = false; $("joinBtn").disabled = false; }
+
+// ---------- Google Maps 読み込み ----------
+let mapsReady;
+const mapsLoaded = new Promise(r => mapsReady = r);
+window.initMaps = () => mapsReady();
+(() => {
+  const s = document.createElement("script");
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=geometry&language=ja&callback=initMaps&loading=async`;
+  s.async = true; s.onerror = () => showErr("Googleマップを読み込めませんでした。通信環境を確認してください。");
+  document.head.appendChild(s);
+})();
+const origConsoleError = console.error.bind(console);
+console.error = (...args) => {
+  const m = args.join(" ").match(/([A-Za-z]+MapError)/);
+  if (m) showErr(`Googleマップのエラーです（${m[1]}）。キーの設定を確認してください。`);
+  origConsoleError(...args);
+};
+async function geocode(q){
+  await mapsLoaded;
+  try {
+    const r = await new google.maps.Geocoder().geocode({ address: q });
+    const loc = r.results[0].geometry.location;
+    return { label: q, lat: loc.lat(), lng: loc.lng(), full: r.results[0].formatted_address };
+  } catch (e) {
+    const m = String(e && (e.code || e.message) || e);
+    if (/ZERO_RESULTS/.test(m)) throw new Error(`「${q}」が見つかりませんでした。書き方を変えてみてください。`);
+    throw new Error("住所を調べられませんでした。少し待ってからもう一度試してください。");
+  }
+}
+const D = (a, b) => google.maps.geometry.spherical.computeDistanceBetween(a, b);
+const HEAD = (a, b) => google.maps.geometry.spherical.computeHeading(a, b);
+const norm = a => ((a % 360) + 540) % 360 - 180;
+
+// ---------- 部屋(Supabase Realtime) ----------
+const myId = Math.random().toString(36).slice(2, 10);
+let sb, ch, players = {}, room = null, isHost = false;
+let game = null, ended = false, myRole = "runner", myPos = null;
+function me(){ return { name: $("pname").value.trim() || "ななし", char: char.id, look }; }
+function payload(){
+  const p = { id: myId, ...me(), host: isHost, role: myRole, t: Date.now() };
+  if (myPos) { p.lat = +myPos.lat().toFixed(6); p.lng = +myPos.lng().toFixed(6); }
+  if (isHost) { p.room = room; p.state = game && !ended ? "playing" : "lobby"; }
+  return p;
+}
+let lastTrack = 0, trackTimer = null;
+function send(pl){ if (ch) ch.send({ type: "broadcast", event: "game", payload: pl }); else onGame(pl); }
+function track(){
+  if (botMode) { players[myId] = payload(); return; }
+  if (!ch) return;
+  const wait = 800 - (Date.now() - lastTrack);
+  clearTimeout(trackTimer);
+  if (wait > 0) { trackTimer = setTimeout(track, wait); return; }
+  lastTrack = Date.now();
+  ch.track(payload());
+}
+async function connect(code){
+  if (!window.supabase) throw new Error("通信の準備ができていません。再読み込みしてください。");
+  if (!sb) sb = window.supabase.createClient(SB_URL, SB_KEY);
+  ch = sb.channel("sanpo-oni-" + code, { config: { presence: { key: myId }, broadcast: { self: true } } });
+  ch.on("presence", { event: "sync" }, onSync);
+  ch.on("broadcast", { event: "game" }, ({ payload }) => onGame(payload));
+  await new Promise((res, rej) => {
+    const to = setTimeout(() => rej(new Error("つながりませんでした。通信環境を確認してください。")), 10000);
+    ch.subscribe(st => {
+      if (st === "SUBSCRIBED") { clearTimeout(to); lastTrack = 0; track(); res(); }
+      else if (st === "CHANNEL_ERROR" || st === "TIMED_OUT") { clearTimeout(to); rej(new Error("つながりませんでした。少し待ってからもう一度試してください。")); }
+    });
+  });
+}
+function onSync(){
+  const st = ch.presenceState(); players = {};
+  for (const k in st) { const arr = st[k]; if (arr && arr.length) players[k] = arr[arr.length - 1]; }
+  if (!isHost) { const h = Object.values(players).find(p => p.host); if (h && h.room) room = h.room; }
+  renderLobby();
+  if (game && !ended) { renderOthers(); updateRadar(); checkEnd(); }
+}
+const hostP = () => Object.values(players).find(p => p.host);
+
+$("makeBtn").addEventListener("click", async () => {
+  $("err").hidden = true; $("makeBtn").disabled = true;
+  try {
+    const q = $("addr").value.trim();
+    const c = q ? await geocode(q) : (p => ({ label: p.name.split("・").pop(), lat: p.lat, lng: p.lng }))(PRESETS[+citySel.value]);
+    isHost = true;
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    room = { code, center: c, radius: +$("radius").value, dur: +$("dur").value };
+    saveName();
+    await connect(code);
+    openLobby();
+  } catch (e) { isHost = false; showErr(e.message); }
+});
+$("joinBtn").addEventListener("click", async () => {
+  $("err").hidden = true;
+  const code = $("code").value.replace(/\D/g, "");
+  if (code.length !== 4) { showErr("あいことばは4けたの数字です。"); return; }
+  $("joinBtn").disabled = true;
+  try {
+    saveName();
+    await connect(code);
+    for (let i = 0; i < 12 && !hostP(); i++) await new Promise(r => setTimeout(r, 250));
+    if (!hostP()) { await ch.unsubscribe(); ch = null; throw new Error("その部屋が見つかりませんでした。あいことばを確かめてください。"); }
+    openLobby();
+  } catch (e) { showErr(e.message); }
+});
+function saveName(){ try { localStorage.setItem("oni_name", $("pname").value.trim()); } catch (e) {} }
+
+function openLobby(){
+  $("start").hidden = true; $("result").hidden = true; $("lobby").hidden = false;
+  renderLobby();
+}
+function roleBadge(p){
+  if (!game || ended) return p.host ? `<span class="badge">ホスト</span>` : "";
+  return p.role === "oni" ? `<span class="badge oni">鬼</span>` : `<span class="badge">逃げる</span>`;
+}
+function renderLobby(){
+  if ($("lobby").hidden) return;
+  $("lCode").textContent = room ? room.code : "----";
+  $("lInfo").textContent = room ? `${room.center.label} のまわり半径${room.radius}m・${room.dur}分` : "";
+  const list = Object.values(players);
+  $("lPlayers").innerHTML = list.map((p, i) => {
+    const L = buildLook(p.char, p.look);
+    return `<li>${svgFace(L.face, "lb" + i)}<span>${esc(p.name)}${p.id === myId ? "（あなた）" : ""}</span>${roleBadge(p)}</li>`;
+  }).join("");
+  const h = hostP();
+  $("startBtn").hidden = !isHost;
+  $("startBtn").disabled = list.length < 2;
+  $("lWait").textContent = isHost
+    ? (list.length < 2 ? "あいことばを友だちに伝えてね。2人以上でスタートできます。" : `${list.length}人そろいました。スタートすると鬼がランダムに決まります。`)
+    : (!h ? "ホストがいなくなりました。部屋を出て作り直してください。" : (h.state === "playing" ? "いまゲーム中です。次の回から参加できます。" : "ホストがスタートするのを待っています。"));
+}
+$("leaveBtn").addEventListener("click", () => location.reload());
+$("startBtn").addEventListener("click", () => {
+  const ids = Object.keys(players);
+  if (ids.length < 2) return;
+  const now = Date.now();
+  ch.send({ type: "broadcast", event: "game", payload: {
+    type: "start", ids, oni: rand(ids), room, startAt: now + 2500, endAt: now + 2500 + room.dur * 60000
+  }});
+});
+
+// ---------- ゲーム ----------
+let pano, svService, minimap, marker, circle, centerLL, lastGoodPano = null, warping = false;
+let freezeUntil = 0, frozen = false, tickTimer = null, sinceTalk = 0;
+function onGame(m){
+  if (m.type === "start") {
+    if (!m.ids.includes(myId)) return;
+    game = m; room = m.room; ended = false;
+    myRole = m.oni === myId ? "oni" : "runner";
+    freezeUntil = m.startAt + 20000;
+    beginPlay().catch(e => { $("lobby").hidden = false; $("lWait").textContent = "ゲームを始められませんでした：" + e.message; });
+  } else if (m.type === "tag") {
+    if (!game || ended) return;
+    const tp = players[m.target];
+    toast(`${m.byName} が ${tp ? tp.name : "だれか"} をつかまえた！`);
+    if (m.target === myId && myRole === "runner") {
+      myRole = "oni"; setRoleHud(); flash();
+      say(botMode ? "つかまった〜！" : "つかまった〜！ここからは鬼だよ", true);
+      lastTrack = 0; track();
+    }
+    if (botMode && players[m.target]) { players[m.target].role = "oni"; checkEnd(); }
+  } else if (m.type === "end") {
+    if (game && !ended) endGame(m.reason);
+  }
+}
+async function beginPlay(){
+  await mapsLoaded;
+  centerLL = new google.maps.LatLng(room.center.lat, room.center.lng);
+  mode = "oni";
+  ensurePano();
+  if (circle) circle.setMap(null);
+  circle = new google.maps.Circle({ map: minimap, center: centerLL, radius: room.radius, strokeColor: "#e9a23b", strokeWeight: 2, fillColor: "#e9a23b", fillOpacity: .06 });
+  minimap.setCenter(centerLL);
+  // スタート地点: 鬼は真ん中、逃げる人はバラバラに
+  let ok = false;
+  for (let i = 0; i < 10 && !ok; i++) {
+    const pt = myRole === "oni" && i < 3 ? centerLL
+      : google.maps.geometry.spherical.computeOffset(centerLL, room.radius * (.4 + .5 * Math.random()), Math.random() * 360);
+    ok = await jumpTo(pt, i < 5 ? 80 : 200, true);
+  }
+  if (!ok) throw new Error("この範囲にストリートビューが見つかりませんでした。");
+  $("lobby").hidden = true; $("result").hidden = true;
+  ["ghud","radar","bar","hiro"].forEach(id => $(id).hidden = false);
+  applyChar(); setRoleHud(); setBar("oni");
+  setFrozen(myRole === "oni");
+  say(myRole === "oni" ? "あなたが鬼！20秒たったら追いかけよう" : "逃げろ〜！鬼は20秒後に動き出すよ", true);
+  clearInterval(tickTimer); tickTimer = setInterval(tick, 500);
+  setTimeout(() => google.maps.event.trigger(pano, "resize"), 300);
+  lastTrack = 0; track();
+}
+function jumpTo(latLng, radius, inside){
+  return new Promise(resolve => {
+    svService.getPanorama({ location: latLng, radius, source: google.maps.StreetViewSource.OUTDOOR, preference: google.maps.StreetViewPreference.NEAREST },
+      (data, status) => {
+        if (status !== "OK") return resolve(false);
+        if (inside && D(data.location.latLng, centerLL) > room.radius) return resolve(false);
+        warping = true;
+        pano.setPano(data.location.pano);
+        pano.setPov({ heading: Math.random() * 360, pitch: 0 });
+        pano.setVisible(true);
+        resolve(true);
+      });
+  });
+}
+function setFrozen(on){
+  frozen = on;
+  if (pano) pano.setOptions({ linksControl: !on, clickToGo: !on });
+  $("freeze").hidden = !on;
+}
+function setRoleHud(){
+  $("gRole").textContent = myRole === "oni" ? "鬼" : "逃げる人";
+  $("gRole").classList.toggle("oni", myRole === "oni");
+}
+function onMove(){
+  const p = pano.getPosition(); if (!p || !game) return;
+  if (!warping) {
+    if (D(p, centerLL) > room.radius + 10 && lastGoodPano) {
+      warping = true; pano.setPano(lastGoodPano); toast("ここから先は範囲の外！"); return;
+    }
+    if (frozen && lastGoodPano) { warping = true; pano.setPano(lastGoodPano); return; }
+    if (myPos) { const d = D(myPos, p); if (d < 150) { hiroWalk(); talk(d); } }
+  }
+  warping = false;
+  lastGoodPano = pano.getPano();
+  myPos = p;
+  marker.setPosition(p); minimap.panTo(p);
+  track(); renderOthers(); updateRadar();
+}
+const ONI_TALK = ["どこだ〜","見つけてやる！","足音がした気がする","この角があやしい","逃がさないよ〜"];
+const RUN_TALK = ["ドキドキする…","どこに隠れよう","後ろ、だいじょうぶかな","この道は見通しが悪いね","息をひそめて…"];
+function talk(d){
+  sinceTalk += d;
+  if (sinceTalk > 90 + Math.random() * 80) { sinceTalk = 0; say(rand(myRole === "oni" ? ONI_TALK : RUN_TALK)); }
+}
+function others(){ return Object.values(players).filter(p => p.id !== myId && game && game.ids.includes(p.id) && p.lat != null); }
+function nearest(role){
+  if (!myPos) return null;
+  let best = null;
+  others().filter(p => p.role === role).forEach(p => {
+    const ll = new google.maps.LatLng(p.lat, p.lng), d = D(myPos, ll);
+    if (!best || d < best.d) best = { p, d, h: HEAD(myPos, ll) };
+  });
+  return best;
+}
+function updateRadar(){
+  if (!game || ended || !pano) return;
+  const heading = pano.getPov().heading;
+  let n, text, hot = false;
+  if (myRole === "oni") {
+    n = nearest("runner");
+    text = n ? `いちばん近い人 約${Math.round(n.d)}m` : "逃げてる人はいません";
+    $("tagBtn").hidden = !(n && n.d <= 20 && !frozen);
+  } else {
+    n = nearest("oni");
+    $("tagBtn").hidden = true;
+    if (n && n.d < 150) { text = `鬼が近い！ 約${Math.round(n.d)}m`; hot = true; }
+    else { text = "鬼は遠くにいるみたい"; n = null; }
+  }
+  $("rText").textContent = text;
+  $("radar").classList.toggle("hot", hot);
+  $("rArrow").style.visibility = n ? "visible" : "hidden";
+  if (n) $("rArrow").style.transform = `rotate(${norm(n.h - heading)}deg)`;
+}
+$("tagBtn").addEventListener("click", () => {
+  const n = nearest("runner");
+  if (!n || n.d > 22 || myRole !== "oni") return;
+  send({ type: "tag", target: n.p.id, by: myId, byName: me().name });
+  $("tagBtn").hidden = true;
+  say("タッチ！つかまえた！", true);
+});
+// まわりの人を景色の中に表示
+const spriteCache = {};
+function renderOthers(){
+  const layer = $("others");
+  if (!game || ended || !myPos || !pano) { layer.innerHTML = ""; return; }
+  const pov = pano.getPov(), zoom = pano.getZoom() || 1;
+  const fov = 180 / Math.pow(2, zoom), half = fov / 2;
+  const W = innerWidth, H = innerHeight, focal = (W / 2) / Math.tan(half * Math.PI / 180);
+  const seen = new Set();
+  others().forEach(p => {
+    const ll = new google.maps.LatLng(p.lat, p.lng), d = Math.max(3, D(myPos, ll));
+    const rel = norm(HEAD(myPos, ll) - pov.heading);
+    let el = layer.querySelector(`[data-id="${p.id}"]`);
+    if (d > 90 || Math.abs(rel) > half + 5) { if (el) el.remove(); return; }
+    seen.add(p.id);
+    const key = p.char + JSON.stringify(p.look) + p.role + p.name;
+    if (!el) { el = document.createElement("div"); el.className = "sprite"; el.dataset.id = p.id; layer.appendChild(el); }
+    if (el.dataset.key !== key) {
+      el.dataset.key = key;
+      const L = buildLook(p.char, p.look);
+      el.innerHTML = `<span class="tag">${p.role === "oni" ? "鬼・" : ""}${esc(p.name)}</span>${uniq(L.front, "sp" + (++spriteSeq))}`;
+      el.classList.toggle("oni", p.role === "oni");
+    }
+    const x = W / 2 + Math.tan(rel * Math.PI / 180) * focal;
+    const h = Math.min(H * .7, 1.9 * focal / d);
+    const feet = Math.min(H - 80, H / 2 + (2.3 - pov.pitch * .03) * focal / d);
+    el.style.left = x + "px"; el.style.top = feet + "px"; el.style.height = h + "px";
+    el.style.zIndex = String(1000 - Math.round(d));
+  });
+  [...layer.children].forEach(el => { if (!seen.has(el.dataset.id)) el.remove(); });
+}
+addEventListener("resize", renderOthers);
+
+function tick(){
+  if (!game || ended) return;
+  const now = Date.now();
+  const left = Math.max(0, game.endAt - now);
+  const m = Math.floor(left / 60000), s = String(Math.floor(left / 1000) % 60).padStart(2, "0");
+  $("gTime").textContent = `${m}:${s}`;
+  $("gLeft").textContent = Object.values(players).filter(p => game.ids.includes(p.id) && p.role === "runner").length;
+  if (frozen) {
+    const f = Math.ceil((freezeUntil - now) / 1000);
+    $("fCount").textContent = Math.max(0, f);
+    if (now >= freezeUntil) { setFrozen(false); say("いくぞ〜！", true); }
+  }
+  if (left <= 0) endGame("time");
+}
+function checkEnd(){
+  if (!game || ended || Date.now() < game.startAt + 4000) return;
+  const inGame = Object.values(players).filter(p => game.ids.includes(p.id));
+  if (inGame.length && inGame.every(p => p.role === "oni")) {
+    if (isHost && ch) ch.send({ type: "broadcast", event: "game", payload: { type: "end", reason: "allcaught" } });
+    endGame("allcaught");
+  }
+}
+function endGame(reason){
+  if (ended) return;
+  ended = true; clearInterval(tickTimer); clearInterval(botTimer); setFrozen(false);
+  $("tagBtn").hidden = true; $("others").innerHTML = "";
+  ["ghud","radar","bar","hiro","mapbox","say"].forEach(id => $(id).hidden = true);
+  const list = Object.values(players).filter(p => game.ids.includes(p.id));
+  const runners = list.filter(p => p.role === "runner");
+  const runnersWin = reason === "time" && runners.length > 0;
+  $("rTitle").textContent = runnersWin ? "逃げきり！" : "鬼の勝ち！";
+  $("rMsg").textContent = runnersWin
+    ? (myRole === "runner" ? "あなたは最後まで逃げきりました。" : `${runners.map(p => p.name).join("、")} が逃げきりました。`)
+    : (botMode && game.oni !== myId && myRole === "oni" ? "つかまっちゃった。もう一度チャレンジしよう！" : "全員つかまえました。");
+  $("rList").innerHTML = list.map((p, i) => {
+    const L = buildLook(p.char, p.look);
+    const win = runnersWin ? p.role === "runner" : true;
+    return `<li>${svgFace(L.face, "rs" + i)}<span>${esc(p.name)}</span><span class="badge ${p.role === "oni" ? "oni" : ""} ${win && runnersWin ? "win" : ""}">${p.role === "oni" ? "鬼" : "逃げきり"}</span></li>`;
+  }).join("");
+  $("result").hidden = false;
+}
+$("againBtn").addEventListener("click", () => {
+  game = null; ended = false; myRole = "runner"; myPos = null; lastGoodPano = null;
+  if (botMode) { botMode = false; isHost = false; players = {}; $("result").hidden = true; $("start").hidden = false; $("botBtn").disabled = false; return; }
+  lastTrack = 0; track();
+  $("result").hidden = true; openLobby();
+});
+// ---------- BOT ----------
+let botMode = false, bots = [], botTimer = null;
+const panoCache = {};
+function panoData(q){
+  const k = q.pano || null;
+  if (k && panoCache[k]) return Promise.resolve(panoCache[k]);
+  return new Promise(res => svService.getPanorama(q, (d, st) => {
+    if (st !== "OK") return res(null);
+    const v = { pano: d.location.pano, ll: d.location.latLng, links: (d.links || []).filter(l => l.pano) };
+    panoCache[v.pano] = v; res(v);
+  }));
+}
+const BOT_NAMES = { me: ["たろう","はなこ","けんた"], horse: ["ウマ吉","パカ子"], shiba: ["ポチ","コタロウ"], cat: ["ミケ","タマ"] };
+function randomLook(cid){
+  const l = {}; (OPTIONS[cid] || []).forEach(o => { const c = rand(o.choices); l[o.key] = c[2] || c[1]; });
+  return l;
+}
+$("botBtn").addEventListener("click", async () => {
+  $("err").hidden = true; $("botBtn").disabled = true;
+  try {
+    const q = $("addr").value.trim();
+    const c = q ? await geocode(q) : (p => ({ label: p.name.split("・").pop(), lat: p.lat, lng: p.lng }))(PRESETS[+citySel.value]);
+    await mapsLoaded;
+    svService = svService || new google.maps.StreetViewService();
+    saveName();
+    botMode = true; isHost = true; ch = null;
+    room = { code: "BOT", center: c, radius: +$("radius").value, dur: +$("dur").value };
+    centerLL = new google.maps.LatLng(c.lat, c.lng);
+    const n = +$("botN").value, meOni = $("botRole").value === "oni";
+    players = {}; bots = [];
+    const used = new Set();
+    for (let i = 0; i < n; i++) {
+      const cid = rand(CHARS).id;
+      let name = rand(BOT_NAMES[cid]); while (used.has(name)) name = name + "2"; used.add(name);
+      const role = meOni ? "runner" : (i === 0 ? "oni" : "runner");
+      let d = null;
+      for (let t = 0; t < 10 && !d; t++) {
+        const pt = role === "oni" ? centerLL : google.maps.geometry.spherical.computeOffset(centerLL, room.radius * (.3 + .6 * Math.random()), Math.random() * 360);
+        d = await panoData({ location: pt, radius: 100, source: google.maps.StreetViewSource.OUTDOOR });
+        if (d && D(d.ll, centerLL) > room.radius) d = null;
+      }
+      if (!d) throw new Error("この範囲にBOTが歩ける道が見つかりませんでした。場所か範囲を変えてください。");
+      const b = { id: "bot" + i, name, char: cid, look: randomLook(cid), role, pano: d.pano, host: false };
+      bots.push(b); players[b.id] = { ...b, lat: d.ll.lat(), lng: d.ll.lng() };
+    }
+    const now = Date.now();
+    const m = { type: "start", bot: true, ids: [myId, ...bots.map(b => b.id)], oni: meOni ? myId : "bot0", room, startAt: now + 1500, endAt: now + 1500 + room.dur * 60000 };
+    game = m; ended = false; myRole = meOni ? "oni" : "runner"; freezeUntil = m.startAt + 20000;
+    players[myId] = payload();
+    $("start").hidden = true;
+    await beginPlay();
+    clearInterval(botTimer); botTimer = setInterval(botTick, +$("botSpeed").value);
+  } catch (e) { botMode = false; isHost = false; $("start").hidden = false; showErr(e.message); }
+});
+async function botTick(){
+  if (!game || ended || !myPos) return;
+  const everyone = Object.values(players).filter(p => game.ids.includes(p.id) && p.lat != null);
+  for (const b of bots) {
+    const me = players[b.id];
+    if (me.role === "oni" && Date.now() < freezeUntil) continue;
+    const cur = await panoData({ pano: b.pano }); if (!cur || !cur.links.length) continue;
+    const here = new google.maps.LatLng(me.lat, me.lng);
+    // 追いかける相手 / 逃げる相手
+    const targets = everyone.filter(p => p.id !== b.id && (me.role === "oni" ? p.role === "runner" : p.role === "oni"));
+    let tgt = null, td = Infinity;
+    targets.forEach(p => { const d = D(here, new google.maps.LatLng(p.lat, p.lng)); if (d < td) { td = d; tgt = p; } });
+    let opts = cur.links.map(l => {
+      const est = google.maps.geometry.spherical.computeOffset(here, 12, l.heading);
+      if (D(est, centerLL) > room.radius) return null;
+      let score = Math.random() * 10;
+      if (tgt) {
+        const dd = D(est, new google.maps.LatLng(tgt.lat, tgt.lng));
+        score += me.role === "oni" ? -dd : (td < 200 ? dd : 0);
+      }
+      return { l, score };
+    }).filter(Boolean);
+    if (!opts.length) continue;
+    const wander = me.role === "oni" ? .15 : .3;
+    const pick = Math.random() < wander ? rand(opts) : opts.sort((a, b) => b.score - a.score)[0];
+    const nx = await panoData({ pano: pick.l.pano }); if (!nx) continue;
+    b.pano = nx.pano; me.lat = nx.ll.lat(); me.lng = nx.ll.lng();
+    // 鬼BOTのタッチ
+    if (me.role === "oni") {
+      const hereN = nx.ll;
+      everyone.filter(p => p.role === "runner" && p.id !== b.id).forEach(p => {
+        const pl = p.id === myId ? myPos : new google.maps.LatLng(p.lat, p.lng);
+        if (pl && D(hereN, pl) <= 18) onGame({ type: "tag", target: p.id, by: b.id, byName: me.name });
+      });
+    }
+  }
+  renderOthers(); updateRadar(); checkEnd();
+}
+
+function flash(){ const f = $("flash"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
+
+// ---------- キャラ表示(散歩版と共通) ----------
+let riding = false;
 function applyChar(){
-  const h = $("hiro");
-  const faceNoBg = char.face.replace(/<circle cx="50" cy="50" r="50"[^>]*?(\/>|><\/circle>)/, "");
-  const cut = char.svg.lastIndexOf("</g>");
-  const front = char.svg.slice(0, cut) + `<g transform="${char.head}">${faceNoBg}</g>` + char.svg.slice(cut);
-  const frontU = front.replace(/stripeF/g, "stripeFB").replace(/"stripe"/g, '"stripeB"').replace(/#stripe\)/g, "#stripeB)");
-  h.innerHTML = `<div class="back">${char.svg}</div><div class="front">${frontU}</div>`;
+  const h = $("hiro"), L = buildLook(char.id, look);
+  h.innerHTML = `<div class="back">${uniq(L.back, "b")}</div><div class="front">${uniq(L.front, "f")}</div>`;
   h.className = "";
-  h.setAttribute("aria-label", `前を進む${char.name}`);
-  $("say").querySelector(".face").innerHTML = char.face;
+  $("say").querySelector(".face").innerHTML = uniq(L.face, "s");
   riding = !!char.rideOn;
   $("rideBtn").hidden = !char.ride;
-  if (char.ride) {
-    $("rideLabel").textContent = riding ? char.unride : char.ride;
-    $("rideBtn").setAttribute("aria-pressed", riding);
-  }
+  if (char.ride) { $("rideLabel").textContent = riding ? char.unride : char.ride; $("rideBtn").setAttribute("aria-pressed", riding); }
   h.classList.toggle(rideClass(), riding);
 }
 const rideClass = () => char.id === "horse" ? "gallop" : "riding";
-
-let sinceTalk = 0, nextTalk = 120, sinceEvent = 0, nextEvent = 300, souvenirs = [], sayT, idleT;
-const rand = a => a[Math.floor(Math.random() * a.length)];
-const local = () => LOCAL[Object.keys(LOCAL).find(k => city.name.includes(k))] || { talk: [], souv: [] };
-const shortName = () => city.label || city.name.split("・").pop();
-
+$("rideBtn").addEventListener("click", () => {
+  riding = !riding;
+  $("rideBtn").setAttribute("aria-pressed", riding);
+  $("rideLabel").textContent = riding ? char.unride : char.ride;
+  $("hiro").classList.toggle(rideClass(), riding);
+  say(char.rideSay[riding ? 0 : 1]);
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = setInterval(autoStep, autoInterval()); }
+});
+let sayT, hiroT, faceT;
 function say(text, isEvent){
   const b = $("say");
   $("sayText").textContent = text;
   b.classList.toggle("event", !!isEvent);
   b.hidden = true; void b.offsetWidth; b.hidden = false;
-  clearTimeout(sayT); sayT = setTimeout(() => b.hidden = true, isEvent ? 5200 : 3800);
+  clearTimeout(sayT); sayT = setTimeout(() => b.hidden = true, isEvent ? 4200 : 3200);
 }
+function hiroWalk(){
+  const h = $("hiro"); h.classList.add("walking");
+  clearTimeout(hiroT); hiroT = setTimeout(() => { if (!autoTimer) h.classList.remove("walking"); }, 1300);
+}
+$("snapBtn").addEventListener("click", () => {
+  if (mode === "walk" && pano) recordPhoto();
+  const h = $("hiro"); h.classList.add("facing");
+  say(rand(char.cheese));
+  clearTimeout(faceT); faceT = setTimeout(() => h.classList.remove("facing"), 3000);
+});
+$("mapBtn").addEventListener("click", () => {
+  const box = $("mapbox"), on = box.hidden;
+  box.hidden = !on; $("mapBtn").setAttribute("aria-pressed", on);
+  if (on && minimap) { google.maps.event.trigger(minimap, "resize"); minimap.setCenter(myPos || centerLL); }
+});
+let toastT;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+// ================= お散歩モード =================
+let mode = "walk";
+const CITIES = [
+  { name: "東京・浅草",        lat: 35.7116, lng: 139.7966, r: 1200 },
+  { name: "東京・谷中/根津",    lat: 35.7255, lng: 139.7660, r: 900 },
+  { name: "東京・下北沢",       lat: 35.6614, lng: 139.6680, r: 800 },
+  { name: "鎌倉",              lat: 35.3190, lng: 139.5500, r: 1500 },
+  { name: "京都・祇園/東山",    lat: 35.0037, lng: 135.7788, r: 1200 },
+  { name: "大阪・中崎町",       lat: 34.7090, lng: 135.5040, r: 700 },
+  { name: "尾道",              lat: 34.4090, lng: 133.2030, r: 1000 },
+  { name: "ソウル・益善洞",     lat: 37.5740, lng: 126.9895, r: 700 },
+  { name: "台北・大稲埕",       lat: 25.0560, lng: 121.5100, r: 900 },
+  { name: "バンコク・旧市街",    lat: 13.7560, lng: 100.4990, r: 1500 },
+  { name: "パリ・マレ地区",      lat: 48.8590, lng: 2.3600,  r: 1000 },
+  { name: "リスボン・アルファマ", lat: 38.7115, lng: -9.1290, r: 700 },
+  { name: "ニューヨーク・ソーホー",lat: 40.7233, lng: -74.0030, r: 900 },
+  { name: "おまかせ(どこかの街)", random: true }
+];
+const wcitySel = $("wcity");
+CITIES.forEach((c, i) => { const o = document.createElement("option"); o.value = i; o.textContent = c.name; wcitySel.appendChild(o); });
+function setMode(m){
+  mode = m;
+  $("modeWalk").setAttribute("aria-pressed", m === "walk"); $("modeOni").setAttribute("aria-pressed", m === "oni");
+  $("walkPane").hidden = m !== "walk"; $("oniPane").hidden = m !== "oni";
+  $("err").hidden = true;
+}
+$("modeWalk").addEventListener("click", () => setMode("walk"));
+$("modeOni").addEventListener("click", () => setMode("oni"));
+
+// パノラマと地図(両モード共通)
+let pathLine;
+function ensurePano(){
+  if (pano) return;
+  svService = svService || new google.maps.StreetViewService();
+  pano = new google.maps.StreetViewPanorama($("pano"), {
+    addressControl: false, fullscreenControl: false, motionTracking: false, motionTrackingControl: false,
+    zoomControl: false, panControl: false, linksControl: true, showRoadLabels: true, clickToGo: true, visible: true
+  });
+  minimap = new google.maps.Map($("minimap"), { zoom: 16, disableDefaultUI: true, gestureHandling: "greedy", clickableIcons: false,
+    styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }] });
+  marker = new google.maps.Marker({ map: minimap, icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: "#3f6b52", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 } });
+  pathLine = new google.maps.Polyline({ map: minimap, strokeColor: "#e9a23b", strokeWeight: 4, strokeOpacity: .9 });
+  minimap.addListener("click", e => { if (mode === "walk") jumpTo(e.latLng, 60); });
+  pano.addListener("position_changed", () => mode === "walk" ? walkMove() : onMove());
+  pano.addListener("pov_changed", () => { if (mode === "oni") { renderOthers(); updateRadar(); } });
+  pano.addListener("pano_changed", () => {
+    if (mode !== "walk") return;
+    const d = pano.getLocation()?.description;
+    $("place").textContent = d || ""; $("place").classList.remove("fade");
+    clearTimeout(window.placeT); window.placeT = setTimeout(() => $("place").classList.add("fade"), 3500);
+  });
+}
+function setBar(m){
+  ["autoBtn","logBtn","destBtn","warpBtn"].forEach(id => $(id).hidden = m !== "walk");
+}
+
+let city, lastPos = null, dist = 0, steps = 0, startTime = 0, autoTimer = null, logItems = [], walkTimer = null;
+$("walkBtn").addEventListener("click", async () => {
+  $("err").hidden = true; $("walkBtn").disabled = true;
+  try {
+    await mapsLoaded;
+    saveName();
+    const q = $("waddr").value.trim();
+    if (q) { const g = await geocode(q); city = { name: `${q} ${g.full || ""}`, label: q, lat: g.lat, lng: g.lng, r: 600 }; }
+    else { city = CITIES[+wcitySel.value]; if (city.random) city = CITIES[Math.floor(Math.random() * (CITIES.length - 1))]; }
+    mode = "walk";
+    ensurePano();
+    if (!(await warp(true))) throw new Error("この場所の近くでストリートビューが見つかりませんでした。別の場所を選んでください。");
+    $("start").hidden = true;
+    applyChar(); setBar("walk");
+    ["stats","place","bar","hiro"].forEach(id => $(id).hidden = false);
+    startTime = Date.now();
+    clearInterval(walkTimer); walkTimer = setInterval(walkTick, 1000);
+    setTimeout(() => google.maps.event.trigger(pano, "resize"), 300);
+    setTimeout(() => say(char.hello(shortName())), 900);
+    resetIdle();
+  } catch (e) { showErr(e.message); $("walkBtn").disabled = false; }
+});
+function walkMove(){
+  const p = pano.getPosition(); if (!p) return;
+  if (lastPos && !warping) {
+    const d = D(lastPos, p);
+    if (d < 150) { dist += d; steps++; pathLine.getPath().push(p); hiroWalk(); chatter(d); }
+  } else pathLine.setPath([p]);
+  warping = false; lastPos = p; myPos = p;
+  marker.setPosition(p); minimap.panTo(p);
+  $("sDist").textContent = dist < 1000 ? `${Math.round(dist)} m` : `${(dist/1000).toFixed(2)} km`;
+  $("sSteps").textContent = steps;
+}
+function walkTick(){
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = String(s % 60).padStart(2, "0");
+  $("sTime").textContent = h ? `${h}:${String(m).padStart(2,"0")}:${sec}` : `${m}:${sec}`;
+}
+async function warp(first){
+  const center = new google.maps.LatLng(city.lat, city.lng);
+  for (let i = 0; i < 8; i++) {
+    const pt = first && i === 0 ? center : google.maps.geometry.spherical.computeOffset(center, Math.sqrt(Math.random()) * city.r, Math.random() * 360);
+    if (await jumpTo(pt, first ? 300 : 150)) {
+      if (!first) { toast(`${city.name.split(" ")[0]} のどこかへ`); say(rand(["わっ！ここどこ？","瞬間移動しちゃった","あれ、景色が変わった"])); }
+      return true;
+    }
+  }
+  return false;
+}
+
+// つぶやき・できごと
+const TALK = ["いい天気だねえ","この道、ちょっと好き","あっちの路地、気になる","歩くの楽しい〜","おなかすいてきた",
+  "足が軽い！","ちょっと休憩したいかも","この辺、住んでみたいな","あ、いい匂い","知らない道ってわくわくする",
+  "この看板、いい味出してる","次の角、曲がってみよっか","写真撮りたくなる景色","ここ、夜に来てもよさそう"];
+const LOCAL = {
+  "浅草":{talk:["雷門、どっちだっけ","人力車かっこいい","着物の人がいっぱい"],souv:["人形焼","雷おこし","きびだんご"]},
+  "谷中":{talk:["猫いないかな","商店街の匂いがする","お寺が多いね"],souv:["谷中メンチ","猫の手ぬぐい","せんべい"]},
+  "下北沢":{talk:["古着屋のぞきたい","カレーの匂いがする","ライブハウスいっぱい"],souv:["古着のシャツ","スパイスカレー","中古レコード"]},
+  "鎌倉":{talk:["海の匂いする？","坂の上から海が見えるかな","江ノ電乗りたい"],souv:["鳩サブレー","しらす丼","紫いもソフト"]},
+  "京都":{talk:["はんなりしてきた","抹茶パフェ…","石畳いいね"],souv:["生八ツ橋","抹茶パフェ","あぶらとり紙"]},
+  "中崎町":{talk:["カフェ多いね","雑貨屋さん入りたい","レトロな建物かわいい"],souv:["手作りの雑貨","古本","クリームソーダ"]},
+  "尾道":{talk:["坂がきつい…","猫の細道ってどこ？","海と山が近い！"],souv:["尾道ラーメン","はっさくゼリー","猫の置物"]},
+  "ソウル":{talk:["ホットク食べたい","韓屋、すてき","ハングル読めたらなあ"],souv:["ホットク","韓国コスメ","トッポッキ"]},
+  "台北":{talk:["タピオカ飲もう","魯肉飯のにおい！","漢方の匂いがする"],souv:["パイナップルケーキ","タピオカミルクティー","烏龍茶"]},
+  "バンコク":{talk:["暑い〜","トゥクトゥク乗りたい","屋台の匂いがたまらない"],souv:["マンゴー","タイカレー","象の置物"]},
+  "パリ":{talk:["おしゃれすぎる","カフェでひと休みしたい","石造りの建物すてき"],souv:["クロワッサン","マカロン","古いポストカード"]},
+  "リスボン":{talk:["坂と路面電車！","タイルがきれい","海風が気持ちいい"],souv:["エッグタルト","タイルのコースター","いわしの缶詰"]},
+  "ニューヨーク":{talk:["映画みたい","ビルが高い！","イエローキャブだ"],souv:["ベーグル","ホットドッグ","I♥NYのTシャツ"]}
+};
+const HAPPENINGS = [
+  {t:"猫に会った", s:"あ、猫！なでたい…"}, {t:"自販機で飲み物を買った", s:"のど渇いた。ちょっと一本"},
+  {t:"きれいな花を見つけた", s:"このお花、かわいい"}, {t:"道を聞かれた", s:"え、道？わたしも迷子です…"},
+  {t:"ベンチでひと休み", s:"ふう、ちょっと座ろ"}, {t:"いい感じの路地を発見", s:"この路地、秘密の抜け道っぽい"},
+  {t:"犬の散歩とすれ違った", s:"わんちゃんだ。かわいい〜"}, {t:"小さな神社でお参り", s:"いいことありますように"}
+];
+let wTalk = 0, nextTalk = 120, sinceEvent = 0, nextEvent = 300, souvenirs = [], idleT;
+const local = () => LOCAL[Object.keys(LOCAL).find(k => city.name.includes(k))] || { talk: [], souv: [] };
+const shortName = () => city.label || city.name.split("・").pop();
 function chatter(d){
-  sinceTalk += d; sinceEvent += d;
-  resetIdle();
+  wTalk += d; sinceEvent += d; resetIdle();
   if (sinceEvent >= nextEvent) { sinceEvent = 0; nextEvent = 250 + Math.random() * 250; happen(); return; }
-  if (sinceTalk >= nextTalk) {
-    sinceTalk = 0; nextTalk = 80 + Math.random() * 120;
+  if (wTalk >= nextTalk) {
+    wTalk = 0; nextTalk = 80 + Math.random() * 120;
     const r = Math.random();
     const pool = riding && char.rideTalk && r < .45 ? char.rideTalk : (char.talk.length && r < .6 ? char.talk : (r < .8 && local().talk.length ? local().talk : TALK));
     say(rand(pool));
@@ -756,14 +1541,11 @@ function chatter(d){
 }
 function happen(){
   let item;
-  if (Math.random() < .5 && local().souv.length) {
-    const g = rand(local().souv);
-    item = { t: `${g}を${char.got}`, s: char.gotSay(g) };
-  } else item = rand(char.id === "me" ? HAPPENINGS : ANIMAL_HAPPEN);
+  if (Math.random() < .5 && local().souv.length) { const g = rand(local().souv); item = { t: `${g}を${char.got}`, s: char.gotSay(g) }; }
+  else item = rand(char.id === "me" ? HAPPENINGS : ANIMAL_HAPPEN);
   souvenirs.unshift({ t: item.t, where: shortName(), at: $("sDist").textContent });
   $("sSouv").textContent = souvenirs.length;
-  renderSouv();
-  say(item.s, true);
+  renderSouv(); say(item.s, true);
 }
 function renderSouv(){
   $("souvEmpty").hidden = souvenirs.length > 0;
@@ -776,73 +1558,25 @@ function renderSouv(){
 }
 function resetIdle(){
   clearTimeout(idleT);
-  idleT = setTimeout(() => { if (!autoTimer) say(rand(char.idle)); resetIdle(); }, 25000);
+  idleT = setTimeout(() => { if (mode === "walk" && !autoTimer) say(rand(char.idle)); resetIdle(); }, 25000);
 }
-
-let hiroT, faceT;
-function hiroWalk(){
-  const h = $("hiro"); h.classList.add("walking");
-  clearTimeout(hiroT);
-  hiroT = setTimeout(() => { if (!autoTimer) h.classList.remove("walking"); }, 1300);
-}
-
-function tick(){
-  const s = Math.floor((Date.now() - startTime) / 1000);
-  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = String(s % 60).padStart(2, "0");
-  $("sTime").textContent = h ? `${h}:${String(m).padStart(2,"0")}:${sec}` : `${m}:${sec}`;
-}
-
-// 指定地点の近くのストリートビューへ移動
-function jumpTo(latLng, radius){
-  return new Promise(resolve => {
-    svService.getPanorama({
-      location: latLng, radius,
-      source: google.maps.StreetViewSource.OUTDOOR,
-      preference: google.maps.StreetViewPreference.NEAREST
-    }, (data, status) => {
-      if (status === "OK") {
-        warping = true;
-        pano.setPano(data.location.pano);
-        pano.setPov({ heading: Math.random() * 360, pitch: 0 });
-        pano.setVisible(true);
-        resolve(true);
-      } else resolve(false);
-    });
-  });
-}
-
-// 今いる街の中のランダムな地点へ
-async function warp(first){
-  const center = new google.maps.LatLng(city.lat, city.lng);
-  for (let i = 0; i < 8; i++) {
-    const pt = first && i === 0 ? center :
-      google.maps.geometry.spherical.computeOffset(center, Math.sqrt(Math.random()) * city.r, Math.random() * 360);
-    if (await jumpTo(pt, first ? 300 : 150)) {
-      if (!first) { toast(`${city.name} のどこかへ`); say(rand(["わっ！ここどこ？","瞬間移動しちゃった","あれ、景色が変わった"])); }
-      return true;
-    }
-  }
-  return false;
-}
-
-// おまかせ散歩: なるべく前を向いたまま、ときどき曲がる
+// おまかせ散歩
 function autoStep(){
   const links = pano.getLinks() || [];
   if (!links.length) { warp(false); return; }
   const cur = pano.getPov().heading;
-  const diff = h => { const d = Math.abs(((h - cur) % 360 + 540) % 360 - 180); return d; };
+  const diff = h => Math.abs(((h - cur) % 360 + 540) % 360 - 180);
   const sorted = [...links].sort((a, b) => diff(a.heading) - diff(b.heading));
   let next = sorted[0];
   const turns = sorted.filter(l => diff(l.heading) > 20 && diff(l.heading) < 120);
-  if (turns.length && Math.random() < 0.18) next = turns[Math.floor(Math.random() * turns.length)];
+  if (turns.length && Math.random() < 0.18) next = rand(turns);
   if (diff(next.heading) > 150 && sorted.length > 1 && Math.random() < 0.7) next = sorted[1];
   pano.setPano(next.pano);
   smoothTurn(cur, next.heading);
 }
 function smoothTurn(from, to){
   const delta = ((to - from) % 360 + 540) % 360 - 180;
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce) { pano.setPov({ heading: to, pitch: 0 }); return; }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { pano.setPov({ heading: to, pitch: 0 }); return; }
   const t0 = performance.now(), dur = 900;
   const step = t => {
     const k = Math.min(1, (t - t0) / dur), e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2) / 2;
@@ -851,7 +1585,7 @@ function smoothTurn(from, to){
   };
   requestAnimationFrame(step);
 }
-
+function autoInterval(){ return riding ? 2600 : 4500; }
 $("autoBtn").addEventListener("click", () => {
   const on = !autoTimer;
   $("autoBtn").setAttribute("aria-pressed", on);
@@ -859,17 +1593,6 @@ $("autoBtn").addEventListener("click", () => {
   if (on) { autoStep(); autoTimer = setInterval(autoStep, autoInterval()); $("hiro").classList.add("walking"); }
   else { clearInterval(autoTimer); autoTimer = null; $("hiro").classList.remove("walking"); }
 });
-
-function autoInterval(){ return riding ? 2600 : 4500; }
-$("rideBtn").addEventListener("click", () => {
-  riding = !riding;
-  $("rideBtn").setAttribute("aria-pressed", riding);
-  $("rideLabel").textContent = riding ? char.unride : char.ride;
-  $("hiro").classList.toggle(rideClass(), riding);
-  say(char.rideSay[riding ? 0 : 1]);
-  if (autoTimer) { clearInterval(autoTimer); autoTimer = setInterval(autoStep, autoInterval()); }
-});
-
 $("destBtn").addEventListener("click", () => {
   const box = $("goBox"), on = box.hidden;
   box.hidden = !on; $("destBtn").setAttribute("aria-pressed", on);
@@ -880,65 +1603,36 @@ $("goBox").addEventListener("submit", async e => {
   const q = $("goAddr").value.trim(); if (!q) return;
   $("goErr").hidden = true;
   try {
-    const next = await geocode(q);
-    const prev = city; city = next;
+    const g = await geocode(q);
+    const prev = city; city = { name: `${q} ${g.full || ""}`, label: q, lat: g.lat, lng: g.lng, r: 600 };
     if (await warp(true)) {
       $("goBox").hidden = true; $("destBtn").setAttribute("aria-pressed", false); $("goAddr").value = "";
       setTimeout(() => say(`${q}に着いた！`), 600);
     } else { city = prev; throw new Error("その近くにはストリートビューがありませんでした。"); }
   } catch (err) { $("goErr").textContent = err.message; $("goErr").hidden = false; }
 });
-
 $("warpBtn").addEventListener("click", () => warp(false));
-
-$("mapBtn").addEventListener("click", () => {
-  const box = $("mapbox"), on = box.hidden;
-  box.hidden = !on; $("mapBtn").setAttribute("aria-pressed", on);
-  if (on) { google.maps.event.trigger(minimap, "resize"); minimap.setCenter(pano.getPosition()); }
-});
-
 $("logBtn").addEventListener("click", () => {
   const box = $("log"), on = box.hidden;
   box.hidden = !on; $("logBtn").setAttribute("aria-pressed", on);
 });
-
-$("snapBtn").addEventListener("click", () => {
-  const p = pano.getPosition(); if (!p) return;
-  const item = {
-    pano: pano.getPano(), pov: pano.getPov(),
-    title: pano.getLocation()?.description || `${city.name} のどこか`,
-    at: $("sDist").textContent, time: $("sTime").textContent
-  };
-  logItems.unshift(item);
-  renderLog();
-  const h = $("hiro");
-  h.classList.add("facing");
-  say(rand(char.cheese));
-  clearTimeout(faceT);
-  setTimeout(() => { const f = $("flash"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); toast("記録しました"); }, 900);
-  faceT = setTimeout(() => h.classList.remove("facing"), 3200);
-});
-
-function renderLog(){
-  $("logEmpty").hidden = logItems.length > 0;
+function recordPhoto(){
+  logItems.unshift({ pano: pano.getPano(), pov: pano.getPov(),
+    title: pano.getLocation()?.description || `${shortName()} のどこか`, at: $("sDist").textContent, time: $("sTime").textContent });
+  $("logEmpty").hidden = true;
   const ol = $("logList"); ol.innerHTML = "";
   logItems.forEach(it => {
     const li = document.createElement("li"), b = document.createElement("button");
     const t = document.createElement("span"), s = document.createElement("small");
-    t.textContent = it.title;
-    s.textContent = `${it.at} 歩いたところ · ${it.time}`;
-    s.className = "num";
+    t.textContent = it.title; s.textContent = `${it.at} 歩いたところ · ${it.time}`; s.className = "num";
     b.append(t, s);
     b.addEventListener("click", () => { warping = true; pano.setPano(it.pano); pano.setPov(it.pov); });
     li.appendChild(b); ol.appendChild(li);
   });
+  setTimeout(() => { flash(); toast("記録しました"); }, 900);
 }
+$("homeBtn").addEventListener("click", () => location.reload());
 
-let toastT;
-function toast(msg){
-  const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 1600);
-}
 setupChars();
 </script>
 </body>

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ぶらり散歩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   設定: 公開するときは、ここにGoogle MapsのAPIキーを入れてください。
+   空のままだと、起動画面でキーを入力する形になります。
+   ============================================================ */
+:root{
+  --ink:#1d2a24;
+  --paper:#f3efe4;
+  --moss:#3f6b52;
+  --moss-deep:#2c4d3b;
+  --lantern:#e9a23b;
+  --glass:rgba(22,32,27,.72);
+  --glass-line:rgba(255,255,255,.14);
+  --on-glass:#f3efe4;
+  --muted:#b9c2b8;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{
+  background:var(--ink);color:var(--on-glass);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",system-ui,sans-serif;
+  overflow:hidden;
+}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--lantern);outline-offset:2px}
+
+/* ---------- 起動画面 ---------- */
+#start{
+  position:fixed;inset:0;display:grid;place-items:center;
+  padding:24px 16px;
+  background:
+    radial-gradient(120% 80% at 80% 0%, rgba(233,162,59,.18), transparent 60%),
+    linear-gradient(180deg,#22372c,#16211b);
+  z-index:20;overflow:auto;
+}
+.card{width:100%;max-width:440px;display:grid;gap:20px}
+.brand{display:grid;gap:6px}
+.brand small{letter-spacing:.2em;color:var(--lantern);font-size:12px}
+.brand h1{margin:0;font-size:clamp(40px,11vw,56px);font-weight:900;line-height:1;letter-spacing:.02em}
+.brand p{margin:4px 0 0;color:var(--muted);line-height:1.8;font-size:15px}
+.field{display:grid;gap:8px}
+.field label{font-size:13px;color:var(--muted);letter-spacing:.06em}
+.field select,.field input{
+  width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--glass-line);
+  background:rgba(255,255,255,.06);color:var(--on-glass);font:inherit;font-size:16px;
+}
+.field select option{color:#111}
+.hint{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+.go{
+  padding:14px 18px;border:0;border-radius:999px;background:var(--lantern);color:#2a1c05;
+  font-weight:900;font-size:18px;letter-spacing:.08em;
+}
+.go:disabled{opacity:.5;cursor:wait}
+.err{color:#ffb4a2;font-size:13px;line-height:1.7;margin:0}
+
+/* ---------- 散歩画面 ---------- */
+#panoWrap{position:fixed;inset:0}
+#pano{width:100%;height:100%}
+.hud{
+  position:fixed;z-index:5;background:var(--glass);border:1px solid var(--glass-line);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:16px;
+}
+#stats{
+  top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:10px 14px;
+  display:grid;grid-template-columns:repeat(4,auto);gap:4px 16px;
+}
+#stats .k{font-size:11px;color:var(--muted);letter-spacing:.08em}
+#stats .v{font-size:18px}
+#place{
+  top:calc(12px + env(safe-area-inset-top,0px));right:12px;max-width:min(46vw,320px);
+  padding:10px 14px;font-size:13px;line-height:1.5;color:var(--on-glass);
+}
+#place:empty{display:none}
+#bar{
+  left:50%;transform:translateX(-50%);
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  padding:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;
+  width:max-content;max-width:calc(100% - 24px);
+}
+#bar button{
+  border:0;border-radius:12px;padding:10px 14px;background:transparent;color:var(--on-glass);
+  font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;
+}
+#bar button:hover{background:rgba(255,255,255,.08)}
+#bar button[aria-pressed="true"]{background:var(--lantern);color:#2a1c05}
+#bar svg{width:18px;height:18px;flex:none}
+
+#mapbox{
+  right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(300px,calc(100vw - 24px));height:220px;overflow:hidden;padding:0;
+}
+#minimap{width:100%;height:100%}
+
+#log{
+  left:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(320px,calc(100vw - 24px));max-height:46vh;overflow:auto;padding:12px 14px;
+}
+#log h2{margin:0 0 8px;font-size:14px;letter-spacing:.08em;color:var(--lantern)}
+#log ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+#log li button{
+  width:100%;text-align:left;border:1px solid var(--glass-line);border-radius:10px;
+  background:rgba(255,255,255,.04);color:var(--on-glass);padding:8px 10px;
+  display:grid;gap:2px;font-size:13px;
+}
+#log li small{color:var(--muted);font-size:11px}
+#log .empty{color:var(--muted);font-size:13px;margin:0}
+
+/* キャラ選び */
+.field .lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chip{display:grid;justify-items:center;gap:4px;padding:8px 4px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);color:var(--on-glass);font-weight:700;font-size:13px}
+.chip svg{width:52px;height:52px}
+.chip[aria-pressed="true"]{border-color:var(--lantern);background:rgba(233,162,59,.18)}
+#hiro.gallop.walking .leg-l,#hiro.gallop.walking .leg-r{animation-duration:.34s}
+#hiro.gallop.walking .leg-r{animation-delay:-.17s}
+#hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
+#hiro.gallop.walking .hair-tips{animation-duration:.34s}
+#goBox{
+  left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(420px,calc(100vw - 24px));padding:12px 14px;display:grid;gap:8px;z-index:7;
+}
+#goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
+#goBox .row{display:flex;gap:8px}
+#goBox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
+#goBox button{border:0;border-radius:10px;padding:0 16px;background:var(--lantern);color:#2a1c05;font-weight:900}
+#goBox .err{margin:0}
+#toast{
+  position:fixed;left:50%;top:calc(80px + env(safe-area-inset-top,0px));transform:translateX(-50%);
+  background:var(--moss);color:var(--paper);padding:8px 16px;border-radius:999px;font-weight:700;
+  font-size:14px;z-index:30;opacity:0;transition:opacity .25s;pointer-events:none;
+}
+#toast.show{opacity:1}
+
+@media (max-width:560px){
+  #place{top:calc(78px + env(safe-area-inset-top,0px));right:auto;left:12px;max-width:calc(100% - 24px);padding:5px 10px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .5s} #place.fade{opacity:0;pointer-events:none}
+  #bar button span{display:none}
+  #bar button{padding:12px}
+  #mapbox,#log{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){/* キャラ選び */
+.field .lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chip{display:grid;justify-items:center;gap:4px;padding:8px 4px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);color:var(--on-glass);font-weight:700;font-size:13px}
+.chip svg{width:52px;height:52px}
+.chip[aria-pressed="true"]{border-color:var(--lantern);background:rgba(233,162,59,.18)}
+#hiro.gallop.walking .leg-l,#hiro.gallop.walking .leg-r{animation-duration:.34s}
+#hiro.gallop.walking .leg-r{animation-delay:-.17s}
+#hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
+#hiro.gallop.walking .hair-tips{animation-duration:.34s}
+#goBox{
+  left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(420px,calc(100vw - 24px));padding:12px 14px;display:grid;gap:8px;z-index:7;
+}
+#goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
+#goBox .row{display:flex;gap:8px}
+#goBox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
+#goBox button{border:0;border-radius:10px;padding:0 16px;background:var(--lantern);color:#2a1c05;font-weight:900}
+#goBox .err{margin:0}
+#toast{transition:none}}
+/* ---------- ひろ ---------- */
+#hiro{
+  position:fixed;z-index:4;left:50%;transform:translateX(-50%);
+  bottom:calc(78px + env(safe-area-inset-bottom,0px));
+  height:min(30vh,240px);aspect-ratio:120/200;max-width:100%;
+  pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
+}
+#hiro svg{width:100%;height:100%;overflow:visible}
+#hiro .part{transform-box:fill-box}
+#hiro .leg{transform-origin:50% 0}
+#hiro .arm{transform-origin:50% 8%}
+#hiro .figure{animation:breathe 3.2s ease-in-out infinite}
+#hiro .hair-tips{transform-origin:50% 0;animation:sway 3.2s ease-in-out infinite}
+#hiro.walking .figure{animation:bob .32s ease-in-out infinite alternate}
+#hiro.walking .leg-l{animation:step .64s ease-in-out infinite}
+#hiro.walking .leg-r{animation:step .64s ease-in-out infinite -.32s}
+#hiro.walking .arm-l{animation:swing .64s ease-in-out infinite}
+#hiro.walking .arm-r{animation:swing .64s ease-in-out infinite -.32s}
+#hiro.walking .hair-tips{animation:sway .64s ease-in-out infinite}
+#hiro .shadow{transform-origin:50% 50%}
+#hiro.walking .shadow{animation:shadow .32s ease-in-out infinite alternate}
+@keyframes step{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-7px) scaleY(.93)}}
+@keyframes swing{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-8deg)}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+@keyframes sway{0%,100%{transform:rotate(1.2deg)}50%{transform:rotate(-1.2deg)}}
+@keyframes shadow{from{transform:scaleX(1)}to{transform:scaleX(.92)}}
+#hiro .back,#hiro .front{height:100%}
+#hiro .front{display:none}
+#hiro.facing .front{display:block}
+#hiro.facing .back{display:none}
+#hiro.facing .rear{display:none}
+#flash{position:fixed;inset:0;background:#fff;z-index:40;pointer-events:none;opacity:0}
+#flash.go{animation:flash .5s ease-out}
+@keyframes flash{0%{opacity:.85}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#flash.go{animation:none}}
+#hiro .scooter{display:none}
+#hiro.riding .scooter{display:inline}
+#hiro.riding .leg,#hiro.riding .arm,#hiro.riding .hair-tips{animation:none!important}
+#hiro.riding .arm-l{transform:rotate(22deg) scaleY(.82)}
+#hiro.riding .arm-r{transform:rotate(-22deg) scaleY(.82)}
+#hiro.riding .figure{animation:none}
+#hiro.riding.walking .figure{animation:ride .14s linear infinite alternate}
+#hiro.riding.walking .shadow{animation:none}
+@keyframes ride{from{transform:translateY(0)}to{transform:translateY(-1.2px)}}
+@media (prefers-reduced-motion:reduce){#hiro *{animation:none!important}}
+#say{
+  position:fixed;z-index:6;left:50%;transform:translateX(-50%);
+  bottom:calc(78px + min(30vh,240px) + 6px + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:10px;max-width:calc(100% - 32px);
+  background:var(--paper);color:var(--ink);border-radius:18px;padding:8px 16px 8px 8px;
+  box-shadow:0 6px 18px rgba(0,0,0,.3);font-weight:700;font-size:15px;line-height:1.5;
+  animation:pop .25s ease-out;
+}
+#say::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:var(--paper)}
+#say .face{width:44px;height:44px;flex:none}
+#say p{margin:0}
+#say.event{background:var(--lantern);color:#2a1c05}
+#say.event::after{border-top-color:var(--lantern)}
+@keyframes pop{from{transform:translateX(-50%) scale(.85);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+#log h3{margin:14px 0 8px;font-size:13px;letter-spacing:.08em;color:var(--lantern)}
+#souvList li{font-size:13px;padding:6px 0;border-bottom:1px dashed var(--glass-line);display:flex;justify-content:space-between;gap:8px}
+#souvList li small{color:var(--muted);font-size:11px;white-space:nowrap}
+@media (max-width:560px){#say{bottom:calc(70px + min(24vh,190px) + 6px + env(safe-area-inset-bottom,0px));font-size:14px}}
+@media (prefers-reduced-motion:reduce){#say{animation:none}}
+@media (max-width:560px){#hiro{height:min(24vh,190px);bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
+
+#goBox button{flex:none;white-space:nowrap} @media (max-width:560px){#goBox{top:calc(78px + env(safe-area-inset-top,0px));bottom:auto}}</style>
+</head>
+<body>
+
+<!-- 起動画面 -->
+<section id="start">
+  <div class="card">
+    <div class="brand">
+      <small>STREET VIEW STROLL</small>
+      <h1>ぶらり散歩</h1>
+      <p>好きなキャラと一緒に、本物の街並みをぶらぶら。<br>つぶやいたり、寄り道したり、おみやげが増えたり。</p>
+    </div>
+
+    <div class="field">
+      <span class="lbl">だれと行く？</span>
+      <div class="chars" id="chars"></div>
+    </div>
+    <div class="field">
+      <label for="addr">どこへ行く？（住所や場所の名前）</label>
+      <input id="addr" type="text" autocomplete="off" placeholder="例：東京都台東区浅草2-3-1、京都駅">
+    </div>
+    <div class="field">
+      <label for="city">または、おすすめの街から選ぶ</label>
+      <select id="city"></select>
+    </div>
+
+    <div class="field" id="keyField">
+      <label for="apikey">Google Maps APIキー</label>
+      <input id="apikey" type="password" autocomplete="off" placeholder="AIza...">
+      <p class="hint">キーはこのページを閉じると消えます。公開するときはHTML内の API_KEY に書き込んでください。</p>
+    </div>
+
+    <button class="go" id="goBtn">歩きはじめる</button>
+    <p class="err" id="err" hidden></p>
+  </div>
+</section>
+
+<!-- 散歩画面 -->
+<div id="panoWrap"><div id="pano"></div></div>
+
+<div class="hud" id="stats" hidden>
+  <div><div class="k">歩いた距離</div><div class="v num" id="sDist">0 m</div></div>
+  <div><div class="k">歩数</div><div class="v num" id="sSteps">0</div></div>
+  <div><div class="k">おみやげ</div><div class="v num" id="sSouv">0</div></div>
+  <div><div class="k">時間</div><div class="v num" id="sTime">0:00</div></div>
+</div>
+<div class="hud" id="place" hidden></div>
+
+<form class="hud" id="goBox" hidden>
+  <label for="goAddr">次の行き先（住所や場所の名前）</label>
+  <div class="row"><input id="goAddr" type="text" autocomplete="off" placeholder="例：東京タワー"><button type="submit">行く</button></div>
+  <p class="err" id="goErr" hidden></p>
+</form>
+<div class="hud" id="mapbox" hidden><div id="minimap"></div></div>
+
+<div class="hud" id="log" hidden>
+  <h2>撮った景色</h2>
+  <p class="empty" id="logEmpty">気になる景色で「記録」を押すと、ここに残ります。</p>
+  <ol id="logList"></ol>
+  <h3>おみやげ・できごと</h3>
+  <p class="empty" id="souvEmpty">歩いていると、いろんなことが起きます。</p>
+  <ol id="souvList"></ol>
+</div>
+
+<nav class="hud" id="bar" hidden>
+  <button id="autoBtn" aria-pressed="false" title="おまかせで歩く">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v4M7 12l3-4 4 1 3 4M11 15l-1-5"/></svg>
+    <span id="autoLabel">おまかせ</span>
+  </button>
+  <button id="rideBtn" aria-pressed="true" title="電動キックボードに乗る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 18h9M16 18L13 4h3"/></svg>
+    <span id="rideLabel">降りる</span>
+  </button>
+  <button id="snapBtn" title="この場所を記録">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    <span>記録</span>
+  </button>
+  <button id="logBtn" aria-pressed="false" title="見つけた場所">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 12h14M5 19h9"/></svg>
+    <span>思い出</span>
+  </button>
+  <button id="mapBtn" aria-pressed="false" title="地図">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14M15 6v14"/></svg>
+    <span>地図</span>
+  </button>
+  <button id="destBtn" aria-pressed="false" title="住所で行き先を選ぶ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span>行き先</span>
+  </button>
+  <button id="warpBtn" title="この街の別の場所へ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
+    <span>ワープ</span>
+  </button>
+</nav>
+
+
+<!-- 歩く人(後ろ姿) -->
+<div id="hiro" class="riding" hidden aria-label="前を進むわたし">
+<svg viewBox="0 0 120 200" role="img">
+  <defs>
+    <pattern id="stripe" width="7" height="10" patternUnits="userSpaceOnUse">
+      <rect width="7" height="10" fill="#1f3d6e"/><rect width="1.8" height="10" fill="#dfe7f2"/>
+    </pattern>
+  </defs>
+  <ellipse class="part shadow" cx="60" cy="198" rx="30" ry="5.5" fill="rgba(0,0,0,.35)"/>
+  <g class="figure">
+    <!-- 電動キックボード(乗っているときだけ表示) -->
+    <g class="scooter">
+      <rect x="8" y="121" width="104" height="6" rx="3" fill="#2c2f36"/>
+      <rect x="3" y="118" width="17" height="12" rx="6" fill="#111215"/>
+      <rect x="100" y="118" width="17" height="12" rx="6" fill="#111215"/>
+      <rect x="51" y="186" width="18" height="20" rx="8" fill="#111215"/>
+      <rect x="55" y="190" width="10" height="12" rx="4" fill="#3a3d44"/>
+      <path d="M44 190 C46 178 74 178 76 190 Z" fill="#e9a23b"/>
+      <rect x="22" y="182" width="76" height="9" rx="4.5" fill="#e9a23b"/>
+      <rect x="22" y="188" width="76" height="3" rx="1.5" fill="#b87a1f"/>
+      <rect x="53" y="192" width="14" height="4" rx="2" fill="#ff4d3d"/>
+    </g>
+    <g class="part leg leg-l">
+      <rect x="45" y="140" width="13" height="38" rx="6" fill="#f0cfb6"/>
+      <rect x="45" y="140" width="4" height="38" rx="2" fill="#e2b99c"/>
+      <rect x="41" y="172" width="20" height="13" rx="6" fill="#26262a"/>
+      <rect x="42" y="181" width="18" height="4" rx="2" fill="#e8e4da"/>
+    </g>
+    <g class="part leg leg-r">
+      <rect x="62" y="140" width="13" height="38" rx="6" fill="#f0cfb6"/>
+      <rect x="71" y="140" width="4" height="38" rx="2" fill="#e2b99c"/>
+      <rect x="59" y="172" width="20" height="13" rx="6" fill="#26262a"/>
+      <rect x="60" y="181" width="18" height="4" rx="2" fill="#e8e4da"/>
+    </g>
+    <g class="part arm arm-l">
+      <rect x="26" y="96" width="11" height="40" rx="5.5" fill="#f0cfb6"/>
+      <rect x="23" y="84" width="16" height="22" rx="7" fill="url(#stripe)" stroke="#16305a" stroke-width="1"/>
+      <circle cx="31.5" cy="137" r="6" fill="#f0cfb6"/>
+    </g>
+    <g class="part arm arm-r">
+      <rect x="83" y="96" width="11" height="40" rx="5.5" fill="#f0cfb6"/>
+      <rect x="81" y="84" width="16" height="22" rx="7" fill="url(#stripe)" stroke="#16305a" stroke-width="1"/>
+      <circle cx="89" cy="137" r="6" fill="#f0cfb6"/>
+    </g>
+    <!-- 首 -->
+    <rect x="53" y="70" width="14" height="12" rx="5" fill="#f0cfb6"/>
+    <!-- 青いワンピース -->
+    <path d="M36 82 C44 76 76 76 84 82 L86 104 C92 130 96 150 98 168 C80 176 40 176 22 168 C24 150 28 130 34 104 Z" fill="url(#stripe)" stroke="#16305a" stroke-width="1"/>
+    <path d="M34 104 C50 110 70 110 86 104" fill="none" stroke="#16305a" stroke-width="3"/>
+    <path d="M22 168 C40 176 80 176 98 168" fill="none" stroke="#16305a" stroke-width="2"/>
+    <!-- 髪(ダークブラウンのミディアムウルフ) -->
+    <path d="M60 14 C81 14 91 29 91 48 C91 60 89 68 91 76 C93 82 97 86 100 88 C94 91 89 89 86 86 L85 94 C81 90 79 88 77 88 L73 96 L67 88 L60 95 L53 88 L47 96 L43 88 C41 88 39 90 35 94 L34 86 C31 89 26 91 20 88 C23 86 27 82 29 76 C31 68 29 60 29 48 C29 29 39 14 60 14 Z" fill="#3d2621"/>
+    <path d="M60 18 C54 32 51 50 52 80 M60 18 C66 32 69 50 68 80 M45 24 C38 38 37 58 40 82 M75 24 C82 38 83 58 80 82" stroke="#5e3b30" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M50 20 C56 16 65 16 71 20" stroke="#74493b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
+</div>
+
+<!-- ふきだし -->
+<div id="say" hidden>
+  <svg class="face" viewBox="0 0 100 100" aria-hidden="true">
+    <defs><pattern id="stripeF" width="6" height="10" patternUnits="userSpaceOnUse"><rect width="6" height="10" fill="#1f3d6e"/><rect width="1.6" height="10" fill="#dfe7f2"/></pattern></defs>
+    <circle cx="50" cy="50" r="50" fill="#e9dcc6"/>
+    <path d="M50 12 C71 12 82 27 81 46 C80 58 83 66 90 74 C82 77 77 73 74 70 L72 78 C68 74 66 72 64 72 L50 80 L36 72 C34 72 32 74 28 78 L26 70 C23 73 18 77 10 74 C17 66 20 58 19 46 C18 27 29 12 50 12 Z" fill="#3d2621"/>
+    <rect x="43" y="64" width="14" height="16" rx="5" fill="#f0cfb6"/>
+    <path d="M12 100 C15 83 30 76 50 76 C70 76 85 83 88 100 Z" fill="url(#stripeF)"/>
+    <path d="M38 77 C42 86 58 86 62 77 C58 79 42 79 38 77 Z" fill="#f0cfb6"/>
+    <path d="M37 77 C42 88 58 88 63 77" fill="none" stroke="#16305a" stroke-width="1.6"/>
+    <ellipse cx="50" cy="47" rx="21" ry="23" fill="#f6dccb"/>
+    <path d="M28 44 C29 25 39 17 50 17 C62 17 72 25 72 44 L67 36 L63 43 L58 34 L54 42 L50 33 L46 42 L42 34 L37 43 L33 36 Z" fill="#3d2621"/>
+    <ellipse cx="42" cy="51" rx="2.6" ry="3.1" fill="#2a1a14"/>
+    <ellipse cx="58" cy="51" rx="2.6" ry="3.1" fill="#2a1a14"/>
+    <circle cx="43" cy="50" r=".9" fill="#fff"/><circle cx="59" cy="50" r=".9" fill="#fff"/>
+    <ellipse cx="37" cy="58" rx="4" ry="2.4" fill="#f09a9a" opacity=".45"/>
+    <ellipse cx="63" cy="58" rx="4" ry="2.4" fill="#f09a9a" opacity=".45"/>
+    <path d="M46 61 C48 63 52 63 54 61" stroke="#d9707a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </svg>
+  <p id="sayText"></p>
+</div>
+
+<div id="flash"></div>
+<div id="toast" role="status"></div>
+
+<script>
+// ▼ 公開するときはここにAPIキーを書く(HTTPリファラー制限を必ずかけてください)
+const API_KEY = "AIzaSyARFqWlDAY_BPyOP7L6DfH6v_-T5LJWz9Q";
+
+// 散歩できる街(中心の緯度経度と、ワープする範囲の半径 m)
+const CITIES = [
+  { name: "東京・浅草",        lat: 35.7116, lng: 139.7966, r: 1200 },
+  { name: "東京・谷中/根津",    lat: 35.7255, lng: 139.7660, r: 900 },
+  { name: "東京・下北沢",       lat: 35.6614, lng: 139.6680, r: 800 },
+  { name: "鎌倉",              lat: 35.3190, lng: 139.5500, r: 1500 },
+  { name: "京都・祇園/東山",    lat: 35.0037, lng: 135.7788, r: 1200 },
+  { name: "大阪・中崎町",       lat: 34.7090, lng: 135.5040, r: 700 },
+  { name: "尾道",              lat: 34.4090, lng: 133.2030, r: 1000 },
+  { name: "ソウル・益善洞",     lat: 37.5740, lng: 126.9895, r: 700 },
+  { name: "台北・大稲埕",       lat: 25.0560, lng: 121.5100, r: 900 },
+  { name: "バンコク・旧市街",    lat: 13.7560, lng: 100.4990, r: 1500 },
+  { name: "パリ・マレ地区",      lat: 48.8590, lng: 2.3600,  r: 1000 },
+  { name: "リスボン・アルファマ", lat: 38.7115, lng: -9.1290, r: 700 },
+  { name: "ニューヨーク・ソーホー",lat: 40.7233, lng: -74.0030, r: 900 },
+  { name: "おまかせ(どこかの街)", random: true }
+];
+
+const $ = id => document.getElementById(id);
+let addrQuery = "";
+
+// 住所・場所の名前 → 緯度経度
+async function geocode(q){
+  try {
+    const r = await new google.maps.Geocoder().geocode({ address: q });
+    const res = r.results[0], loc = res.geometry.location;
+    return { name: `${q} ${res.formatted_address}`, label: q, lat: loc.lat(), lng: loc.lng(), r: 600 };
+  } catch (e) {
+    const m = String(e && (e.code || e.message) || e);
+    if (/REQUEST_DENIED/.test(m)) throw new Error("住所検索が使えません。Cloud Consoleで「Geocoding API」を有効にして、APIキーの「APIの制限」にも追加してください。");
+    if (/ZERO_RESULTS/.test(m)) throw new Error(`「${q}」が見つかりませんでした。書き方を変えてみてください。`);
+    throw new Error("住所を調べられませんでした。少し待ってからもう一度試してください。");
+  }
+}
+const citySel = $("city");
+CITIES.forEach((c, i) => {
+  const o = document.createElement("option");
+  o.value = i; o.textContent = c.name; citySel.appendChild(o);
+});
+if (API_KEY) $("keyField").hidden = true;
+
+let pano, svService, minimap, marker, pathLine;
+let city, lastPos = null, dist = 0, steps = 0, startTime = 0, warping = false;
+let autoTimer = null, logItems = [];
+
+function showErr(msg){ const e = $("err"); e.textContent = msg; e.hidden = false; $("goBtn").disabled = false; }
+
+// Googleのエラー内容を読み取って、日本語で原因を表示する
+const MAP_ERRORS = {
+  RefererNotAllowedMapError: "キーの「ウェブサイト」制限で、このページが許可されていません。パソコン上で試すときは「アプリケーションの制限」を「なし」にしてください。",
+  ApiNotActivatedMapError: "Maps JavaScript API が有効になっていません。Cloud Consoleで「Maps JavaScript API」を開き「有効にする」を押してください。",
+  BillingNotEnabledMapError: "お支払い情報がプロジェクトに紐づいていません。Cloud Consoleの「お支払い」で設定してください。",
+  ApiTargetBlockedMapError: "キーの「APIの制限」で Maps JavaScript API が許可されていません。キーの設定でチェックを入れてください。",
+  InvalidKeyMapError: "APIキーの値が正しくありません。コピーし直して貼り付けてください。",
+  MissingKeyMapError: "APIキーが入っていません。",
+  ExpiredKeyMapError: "APIキーが無効になっています。新しいキーを作ってください。",
+  DeletedApiProjectMapError: "キーのプロジェクトが削除されています。新しいキーを作ってください。"
+};
+let lastMapError = "";
+const origConsoleError = console.error.bind(console);
+console.error = (...args) => {
+  const m = args.join(" ").match(/([A-Za-z]+MapError)/);
+  if (m) { lastMapError = m[1]; explainMapError(); }
+  origConsoleError(...args);
+};
+function explainMapError(){
+  const why = MAP_ERRORS[lastMapError] || `Googleから「${lastMapError}」というエラーが返りました。`;
+  $("start").hidden = false;
+  showErr(`${why}（エラー名: ${lastMapError}）設定を変えたら数分待ってから再読み込みしてください。`);
+}
+window.gm_authFailure = () => {
+  setTimeout(() => {
+    if (lastMapError) explainMapError();
+    else showErr("APIキーが使えませんでした。キーの値、Maps JavaScript APIの有効化、お支払い情報、キーの制限を確認してください。");
+  }, 300);
+};
+
+$("goBtn").addEventListener("click", () => {
+  const key = API_KEY || $("apikey").value.trim();
+  if (!key) { showErr("APIキーを入力してください。"); return; }
+  $("goBtn").disabled = true; $("err").hidden = true;
+  addrQuery = $("addr").value.trim();
+  city = CITIES[+citySel.value];
+  if (city.random) city = CITIES[Math.floor(Math.random() * (CITIES.length - 1))];
+  if (window.google?.maps) { initApp(); return; }
+  const s = document.createElement("script");
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=geometry&language=ja&callback=initApp&loading=async`;
+  s.async = true;
+  s.onerror = () => showErr("Googleマップを読み込めませんでした。通信環境を確認してください。");
+  document.head.appendChild(s);
+});
+
+window.initApp = async function(){
+  try { await startApp(); }
+  catch (e) { $("start").hidden = false; showErr(`うまく起動できませんでした（${e && e.message || e}）。この文をそのままClaudeに送ってください。`); }
+};
+async function startApp(){
+  svService = new google.maps.StreetViewService();
+  pano = new google.maps.StreetViewPanorama($("pano"), {
+    addressControl: false, fullscreenControl: false, motionTracking: false,
+    motionTrackingControl: false, zoomControl: false, panControl: false,
+    linksControl: true, showRoadLabels: true, clickToGo: true, visible: true
+  });
+  minimap = new google.maps.Map($("minimap"), {
+    zoom: 16, disableDefaultUI: true, gestureHandling: "greedy", clickableIcons: false,
+    styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
+  });
+  pathLine = new google.maps.Polyline({ map: minimap, strokeColor: "#e9a23b", strokeWeight: 4, strokeOpacity: .9 });
+  marker = new google.maps.Marker({ map: minimap, icon: {
+    path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: "#3f6b52", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2
+  }});
+  minimap.addListener("click", e => jumpTo(e.latLng, 60));
+
+  pano.addListener("position_changed", onMove);
+  pano.addListener("pano_changed", () => {
+    const d = pano.getLocation()?.description;
+    $("place").textContent = d || ""; $("place").classList.remove("fade"); clearTimeout(window.placeT); window.placeT = setTimeout(() => $("place").classList.add("fade"), 3500);
+  });
+
+  if (addrQuery) {
+    try { city = await geocode(addrQuery); }
+    catch (e) { $("start").hidden = false; showErr(e.message); return; }
+  }
+  const ok = await warp(true);
+  if (!ok) { $("start").hidden = false; showErr("この街の近くでストリートビューが見つかりませんでした。別の街を選んでください。"); return; }
+  $("start").hidden = true;
+  applyChar();
+  ["stats","place","bar","hiro"].forEach(id => $(id).hidden = false);
+  startTime = Date.now();
+  setInterval(tick, 1000);
+  setTimeout(() => google.maps.event.trigger(pano, "resize"), 300);
+  setTimeout(() => say(char.hello(shortName())), 900);
+  resetIdle();
+}
+
+function onMove(){
+  const p = pano.getPosition(); if (!p) return;
+  if (lastPos && !warping) {
+    const d = google.maps.geometry.spherical.computeDistanceBetween(lastPos, p);
+    if (d < 150) { dist += d; steps++; pathLine.getPath().push(p); hiroWalk(); chatter(d); }
+  } else {
+    pathLine.setPath([p]);
+  }
+  warping = false; lastPos = p;
+  marker.setPosition(p); minimap.panTo(p);
+  $("sDist").textContent = dist < 1000 ? `${Math.round(dist)} m` : `${(dist/1000).toFixed(2)} km`;
+  $("sSteps").textContent = steps;
+}
+
+// ---------- つぶやき・できごと ----------
+const TALK = ["いい天気だねえ","この道、ちょっと好き","あっちの路地、気になる","歩くの楽しい〜","おなかすいてきた",
+  "足が軽い！","ちょっと休憩したいかも","この辺、住んでみたいな","あ、いい匂い","知らない道ってわくわくする",
+  "この看板、いい味出してる","次の角、曲がってみよっか","写真撮りたくなる景色","ここ、夜に来てもよさそう"];
+const LOCAL = {
+  "浅草":{talk:["雷門、どっちだっけ","人力車かっこいい","着物の人がいっぱい"],souv:["人形焼","雷おこし","きびだんご"]},
+  "谷中":{talk:["猫いないかな","商店街の匂いがする","お寺が多いね"],souv:["谷中メンチ","猫の手ぬぐい","せんべい"]},
+  "下北沢":{talk:["古着屋のぞきたい","カレーの匂いがする","ライブハウスいっぱい"],souv:["古着のシャツ","スパイスカレー","中古レコード"]},
+  "鎌倉":{talk:["海の匂いする？","坂の上から海が見えるかな","江ノ電乗りたい"],souv:["鳩サブレー","しらす丼","紫いもソフト"]},
+  "京都":{talk:["はんなりしてきた","抹茶パフェ…","石畳いいね"],souv:["生八ツ橋","抹茶パフェ","あぶらとり紙"]},
+  "中崎町":{talk:["カフェ多いね","雑貨屋さん入りたい","レトロな建物かわいい"],souv:["手作りの雑貨","古本","クリームソーダ"]},
+  "尾道":{talk:["坂がきつい…","猫の細道ってどこ？","海と山が近い！"],souv:["尾道ラーメン","はっさくゼリー","猫の置物"]},
+  "ソウル":{talk:["ホットク食べたい","韓屋、すてき","ハングル読めたらなあ"],souv:["ホットク","韓国コスメ","トッポッキ"]},
+  "台北":{talk:["タピオカ飲もう","魯肉飯のにおい！","漢方の匂いがする"],souv:["パイナップルケーキ","タピオカミルクティー","烏龍茶"]},
+  "バンコク":{talk:["暑い〜","トゥクトゥク乗りたい","屋台の匂いがたまらない"],souv:["マンゴー","タイカレー","象の置物"]},
+  "パリ":{talk:["おしゃれすぎる","カフェでひと休みしたい","石造りの建物すてき"],souv:["クロワッサン","マカロン","古いポストカード"]},
+  "リスボン":{talk:["坂と路面電車！","タイルがきれい","海風が気持ちいい"],souv:["エッグタルト","タイルのコースター","いわしの缶詰"]},
+  "ニューヨーク":{talk:["映画みたい","ビルが高い！","イエローキャブだ"],souv:["ベーグル","ホットドッグ","I♥NYのTシャツ"]}
+};
+const HAPPENINGS = [
+  {t:"猫に会った", s:"あ、猫！なでたい…"},
+  {t:"自販機で飲み物を買った", s:"のど渇いた。ちょっと一本"},
+  {t:"きれいな花を見つけた", s:"このお花、かわいい"},
+  {t:"道を聞かれた", s:"え、道？わたしも迷子です…"},
+  {t:"ベンチでひと休み", s:"ふう、ちょっと座ろ"},
+  {t:"いい感じの路地を発見", s:"この路地、秘密の抜け道っぽい"},
+  {t:"犬の散歩とすれ違った", s:"わんちゃんだ。かわいい〜"},
+  {t:"小さな神社でお参り", s:"いいことありますように"}
+];
+const RIDE_TALK = ["風が気持ちいい〜","スイスイ進む！","車道の左側を安全運転","段差に気をつけよ","歩くより速いね","景色が流れてく〜"];
+let riding = true;
+
+// ---------- キャラクター ----------
+const CHARS = [
+  { id:"me", name:"わたし", ride:"キックボード", unride:"降りる", rideOn:true,
+     talk:[], rideTalk:["風が気持ちいい〜","スイスイ進む！","車道の左側を安全運転","段差に気をつけよ","歩くより速いね","景色が流れてく〜"],
+     idle:["ねえ、歩こうよ〜","どっちに行く？","ぼーっとしちゃった"],
+     hello:n => `${n}に着いた！どっち行こう？`, head:"translate(15,5.7) scale(.9)", cheese:["はい、チーズ！","ピース！","いい感じに撮ってね"], rideSay:["キックボード乗っちゃお！車道の左側ね","よいしょ。ここからは歩こう"], got:"買った", gotSay:g => `${g}、買っちゃった！` },
+  { id:"horse", name:"馬", ride:"駆ける", unride:"歩く", rideOn:false,
+     talk:["ヒヒーン！","にんじん食べたい","蹄の音、いい響き","たてがみがなびく〜","道が広いと走りたくなる","ブルルル…"],
+     rideTalk:["パカラッ、パカラッ","風になる！","駆け足〜！","止まらないよ〜"],
+     idle:["ブルル…行かないの？","草、生えてないかな","ヒン？"],
+     hello:n => `ヒヒーン！${n}に来たよ`, head:"translate(30,9) scale(.6)", cheese:["ヒヒン♪ 撮って撮って","キメ顔、ブルル"], rideSay:["駆けるよ！パカラッ","ゆっくり歩こう、ブルル"], got:"もらった", gotSay:g => `${g}をもらった！ヒヒン`,
+     svg:`<svg viewBox="0 0 120 200" role="img">
+  <ellipse class="part shadow" cx="60" cy="193" rx="34" ry="5.5" fill="rgba(0,0,0,.35)"/>
+  <g class="figure">
+    <g class="part leg leg-r"><rect x="48" y="140" width="9" height="42" rx="4" fill="#6b411d"/><rect x="47" y="180" width="11" height="6" rx="2" fill="#2b2622"/></g>
+    <g class="part leg leg-l"><rect x="63" y="140" width="9" height="42" rx="4" fill="#6b411d"/><rect x="62" y="180" width="11" height="6" rx="2" fill="#2b2622"/></g>
+    <path d="M49 92 C47 62 51 42 60 36 C69 42 73 62 71 92 Z" fill="#7a4b22"/>
+    <path d="M50 24 L46 6 L57 18 Z M70 24 L74 6 L63 18 Z" fill="#7f4f24"/>
+    <path d="M50 20 L48 11 L54 17 Z M70 20 L72 11 L66 17 Z" fill="#5a3517"/>
+    <ellipse cx="60" cy="32" rx="13" ry="15" fill="#7f4f24"/>
+    <path d="M56 18 C53 40 54 62 56 92 L64 92 C66 62 67 40 64 18 Z" fill="#2d1a0e"/>
+    <g class="part leg leg-l"><rect x="33" y="130" width="19" height="32" rx="8" fill="#8b5a2b"/><rect x="37" y="158" width="11" height="26" rx="4" fill="#7a4b22"/><rect x="35" y="182" width="15" height="8" rx="3" fill="#2b2622"/></g>
+    <g class="part leg leg-r"><rect x="68" y="130" width="19" height="32" rx="8" fill="#8b5a2b"/><rect x="72" y="158" width="11" height="26" rx="4" fill="#7a4b22"/><rect x="70" y="182" width="15" height="8" rx="3" fill="#2b2622"/></g>
+    <path d="M24 102 C24 80 44 74 60 80 C76 74 96 80 96 102 C98 126 91 144 79 150 L41 150 C29 144 22 126 24 102 Z" fill="#8b5a2b"/>
+    <path d="M60 82 L60 148" stroke="#6e4420" stroke-width="2"/>
+    <ellipse cx="42" cy="98" rx="10" ry="8" fill="#a06a36" opacity=".6"/><ellipse cx="78" cy="98" rx="10" ry="8" fill="#a06a36" opacity=".6"/>
+    <g class="part hair-tips rear"><path d="M55 82 C48 100 44 132 48 172 C53 179 67 179 72 172 C76 132 72 100 65 82 Z" fill="#3b2414"/><path d="M57 96 C54 120 53 146 55 168 M63 96 C66 120 67 146 65 168" stroke="#5a3a22" stroke-width="1.6" fill="none"/></g>
+  </g>
+</svg>`, face:`<circle cx="50" cy="50" r="50" fill="#e9dcc6"/>
+<path d="M33 22 L30 6 L42 16 Z M67 22 L70 6 L58 16 Z" fill="#7f4f24"/>
+<path d="M50 14 C66 14 72 30 70 50 C69 66 64 88 50 90 C36 88 31 66 30 50 C28 30 34 14 50 14 Z" fill="#8b5a2b"/>
+<path d="M50 20 C47 40 47 56 50 70 C53 56 53 40 50 20 Z" fill="#f4ede2"/>
+<ellipse cx="50" cy="77" rx="15" ry="11" fill="#b58458"/>
+<ellipse cx="44" cy="77" rx="2.2" ry="3" fill="#3b2414"/><ellipse cx="56" cy="77" rx="2.2" ry="3" fill="#3b2414"/>
+<ellipse cx="38" cy="44" rx="3" ry="3.5" fill="#1e140e"/><ellipse cx="62" cy="44" rx="3" ry="3.5" fill="#1e140e"/>
+<circle cx="39" cy="43" r="1" fill="#fff"/><circle cx="63" cy="43" r="1" fill="#fff"/>
+<path d="M40 14 C44 22 56 22 60 14 C56 10 44 10 40 14 Z" fill="#2d1a0e"/>` },
+  { id:"shiba", name:"柴犬", rideOn:false,
+     talk:["ワン！","いい匂いがするワン","電柱チェック","しっぽ振っちゃう","あっちに行きたいワン","くんくん…"],
+     idle:["まだ？散歩まだ？","ワン！(歩こうよ)","くぅーん"],
+     hello:n => `ワン！${n}だワン`, head:"translate(22.5,59.5) scale(.75)", cheese:["ワン！(にっこり)","おすわりして撮るワン"], got:"もらった", gotSay:g => `${g}もらったワン！`,
+     svg:`<svg viewBox="0 0 120 200" role="img">
+  <ellipse class="part shadow" cx="60" cy="191" rx="30" ry="5" fill="rgba(0,0,0,.35)"/>
+  <g class="figure">
+    <path d="M40 92 L43 66 L57 84 Z M80 92 L77 66 L63 84 Z" fill="#d98b3a"/>
+    <path d="M44 86 L45 73 L53 83 Z M76 86 L75 73 L67 83 Z" fill="#b86d25"/>
+    <circle cx="60" cy="102" r="22" fill="#d98b3a"/>
+    <g class="part leg leg-l"><rect x="38" y="150" width="16" height="36" rx="7" fill="#d98b3a"/><rect x="38" y="178" width="16" height="9" rx="4" fill="#f5efe6"/></g>
+    <g class="part leg leg-r"><rect x="66" y="150" width="16" height="36" rx="7" fill="#d98b3a"/><rect x="66" y="178" width="16" height="9" rx="4" fill="#f5efe6"/></g>
+    <ellipse cx="60" cy="142" rx="31" ry="28" fill="#d98b3a"/>
+    <ellipse class="rear" cx="60" cy="154" rx="13" ry="10" fill="#f5efe6"/>
+    <g class="part hair-tips rear"><path d="M52 132 C34 122 40 98 60 100 C77 102 75 121 62 121" fill="none" stroke="#d98b3a" stroke-width="12" stroke-linecap="round"/><path d="M52 132 C38 122 43 103 60 104 C71 106 70 117 62 117" fill="none" stroke="#f5efe6" stroke-width="3.5" stroke-linecap="round"/></g>
+  </g>
+</svg>`, face:`<circle cx="50" cy="50" r="50" fill="#e9dcc6"/>
+<path d="M22 42 L26 12 L44 30 Z M78 42 L74 12 L56 30 Z" fill="#d98b3a"/>
+<path d="M27 36 L29 20 L39 30 Z M73 36 L71 20 L61 30 Z" fill="#b86d25"/>
+<ellipse cx="50" cy="54" rx="30" ry="27" fill="#d98b3a"/>
+<path d="M26 60 C30 80 70 80 74 60 C66 58 58 62 50 62 C42 62 34 58 26 60 Z" fill="#f5efe6"/>
+<ellipse cx="38" cy="50" rx="3" ry="3.5" fill="#1e140e"/><ellipse cx="62" cy="50" rx="3" ry="3.5" fill="#1e140e"/>
+<ellipse cx="38" cy="42" rx="3" ry="1.8" fill="#f5efe6"/><ellipse cx="62" cy="42" rx="3" ry="1.8" fill="#f5efe6"/>
+<ellipse cx="50" cy="62" rx="4.5" ry="3.2" fill="#1e140e"/>
+<path d="M44 69 C47 72 53 72 56 69" stroke="#1e140e" stroke-width="1.6" fill="none" stroke-linecap="round"/>` },
+  { id:"cat", name:"ネコ", rideOn:false,
+     talk:["にゃー","日なたぼっこしたい","高いところ登りたいにゃ","魚の匂い…","ここ、いい塀だにゃ","ふぁ〜あ"],
+     idle:["zzz…","にゃ？","毛づくろい中にゃ"],
+     hello:n => `にゃ。${n}に来たにゃ`, head:"translate(25,66) scale(.7)", cheese:["…にゃ(カメラ目線)","しょうがないにゃ、撮らせてあげる"], got:"もらった", gotSay:g => `${g}もらったにゃ`,
+     svg:`<svg viewBox="0 0 120 200" role="img">
+  <ellipse class="part shadow" cx="60" cy="191" rx="27" ry="5" fill="rgba(0,0,0,.35)"/>
+  <g class="figure">
+    <path d="M42 96 L42 72 L56 88 Z M78 96 L78 72 L64 88 Z" fill="#8d9098"/>
+    <path d="M45 90 L45 79 L52 87 Z M75 90 L75 79 L68 87 Z" fill="#6e7078"/>
+    <circle cx="60" cy="104" r="20" fill="#8d9098"/>
+    <path d="M52 88 C54 94 54 98 53 102 M60 86 L60 100 M68 88 C66 94 66 98 67 102" stroke="#6a6c74" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <g class="part leg leg-l"><rect x="42" y="154" width="14" height="32" rx="6" fill="#8d9098"/><rect x="42" y="180" width="14" height="7" rx="3" fill="#dcdde2"/></g>
+    <g class="part leg leg-r"><rect x="64" y="154" width="14" height="32" rx="6" fill="#8d9098"/><rect x="64" y="180" width="14" height="7" rx="3" fill="#dcdde2"/></g>
+    <ellipse cx="60" cy="144" rx="27" ry="30" fill="#8d9098"/>
+    <path d="M40 130 C50 126 70 126 80 130 M36 144 C48 140 72 140 84 144 M38 158 C48 155 72 155 82 158" stroke="#6a6c74" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <g class="part hair-tips rear"><path d="M58 150 C76 142 86 118 80 86 C79 78 87 76 89 84 C96 118 84 146 62 158 Z" fill="#8d9098"/><path d="M82 96 L89 94 M84 110 L91 110 M82 124 L89 126" stroke="#6a6c74" stroke-width="3" stroke-linecap="round"/></g>
+  </g>
+</svg>`, face:`<circle cx="50" cy="50" r="50" fill="#e9dcc6"/>
+<path d="M22 44 L22 12 L44 30 Z M78 44 L78 12 L56 30 Z" fill="#8d9098"/>
+<path d="M26 36 L26 20 L37 30 Z M74 36 L74 20 L63 30 Z" fill="#f2b6b6"/>
+<ellipse cx="50" cy="54" rx="29" ry="26" fill="#8d9098"/>
+<path d="M42 30 L44 40 M50 29 L50 40 M58 30 L56 40" stroke="#6a6c74" stroke-width="2.4" stroke-linecap="round"/>
+<ellipse cx="38" cy="52" rx="4" ry="5" fill="#9ccf6a"/><ellipse cx="62" cy="52" rx="4" ry="5" fill="#9ccf6a"/>
+<ellipse cx="38" cy="52" rx="1.4" ry="4" fill="#1e1e22"/><ellipse cx="62" cy="52" rx="1.4" ry="4" fill="#1e1e22"/>
+<path d="M47 61 L53 61 L50 65 Z" fill="#e98c9a"/>
+<path d="M50 65 C48 69 44 69 43 67 M50 65 C52 69 56 69 57 67" stroke="#3a3a40" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+<path d="M14 58 L32 61 M14 66 L32 65 M86 58 L68 61 M86 66 L68 65" stroke="#f4f4f6" stroke-width="1.2" stroke-linecap="round"/>` }
+];
+let char = CHARS[0];
+const ANIMAL_HAPPEN = [
+  {t:"なでてもらった", s:"なでなで、うれしい"},
+  {t:"子どもに手を振られた", s:"あ、手を振ってくれた！"},
+  {t:"水を飲んでひと休み", s:"ごくごく。ふう"},
+  {t:"写真を撮られた", s:"撮られちゃった。いい顔できたかな"},
+  {t:"ほかの動物に会った", s:"あ、おともだち？"},
+  {t:"日かげで休んだ", s:"ちょっとだけ休憩"}
+];
+function setupChars(){
+  CHARS[0].svg = $("hiro").innerHTML;
+  CHARS[0].face = $("say").querySelector(".face").innerHTML;
+  const box = $("chars");
+  CHARS.forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", c === char);
+    b.innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true">${c.face}</svg><span>${c.name}</span>`;
+    b.addEventListener("click", () => { char = c; [...box.children].forEach(x => x.setAttribute("aria-pressed", x === b)); });
+    box.appendChild(b);
+  });
+}
+function applyChar(){
+  const h = $("hiro");
+  const faceNoBg = char.face.replace(/<circle cx="50" cy="50" r="50"[^>]*?(\/>|><\/circle>)/, "");
+  const cut = char.svg.lastIndexOf("</g>");
+  const front = char.svg.slice(0, cut) + `<g transform="${char.head}">${faceNoBg}</g>` + char.svg.slice(cut);
+  const frontU = front.replace(/stripeF/g, "stripeFB").replace(/"stripe"/g, '"stripeB"').replace(/#stripe\)/g, "#stripeB)");
+  h.innerHTML = `<div class="back">${char.svg}</div><div class="front">${frontU}</div>`;
+  h.className = "";
+  h.setAttribute("aria-label", `前を進む${char.name}`);
+  $("say").querySelector(".face").innerHTML = char.face;
+  riding = !!char.rideOn;
+  $("rideBtn").hidden = !char.ride;
+  if (char.ride) {
+    $("rideLabel").textContent = riding ? char.unride : char.ride;
+    $("rideBtn").setAttribute("aria-pressed", riding);
+  }
+  h.classList.toggle(rideClass(), riding);
+}
+const rideClass = () => char.id === "horse" ? "gallop" : "riding";
+
+let sinceTalk = 0, nextTalk = 120, sinceEvent = 0, nextEvent = 300, souvenirs = [], sayT, idleT;
+const rand = a => a[Math.floor(Math.random() * a.length)];
+const local = () => LOCAL[Object.keys(LOCAL).find(k => city.name.includes(k))] || { talk: [], souv: [] };
+const shortName = () => city.label || city.name.split("・").pop();
+
+function say(text, isEvent){
+  const b = $("say");
+  $("sayText").textContent = text;
+  b.classList.toggle("event", !!isEvent);
+  b.hidden = true; void b.offsetWidth; b.hidden = false;
+  clearTimeout(sayT); sayT = setTimeout(() => b.hidden = true, isEvent ? 5200 : 3800);
+}
+function chatter(d){
+  sinceTalk += d; sinceEvent += d;
+  resetIdle();
+  if (sinceEvent >= nextEvent) { sinceEvent = 0; nextEvent = 250 + Math.random() * 250; happen(); return; }
+  if (sinceTalk >= nextTalk) {
+    sinceTalk = 0; nextTalk = 80 + Math.random() * 120;
+    const r = Math.random();
+    const pool = riding && char.rideTalk && r < .45 ? char.rideTalk : (char.talk.length && r < .6 ? char.talk : (r < .8 && local().talk.length ? local().talk : TALK));
+    say(rand(pool));
+  }
+}
+function happen(){
+  let item;
+  if (Math.random() < .5 && local().souv.length) {
+    const g = rand(local().souv);
+    item = { t: `${g}を${char.got}`, s: char.gotSay(g) };
+  } else item = rand(char.id === "me" ? HAPPENINGS : ANIMAL_HAPPEN);
+  souvenirs.unshift({ t: item.t, where: shortName(), at: $("sDist").textContent });
+  $("sSouv").textContent = souvenirs.length;
+  renderSouv();
+  say(item.s, true);
+}
+function renderSouv(){
+  $("souvEmpty").hidden = souvenirs.length > 0;
+  const ol = $("souvList"); ol.innerHTML = "";
+  souvenirs.forEach(x => {
+    const li = document.createElement("li"), a = document.createElement("span"), b = document.createElement("small");
+    a.textContent = x.t; b.textContent = `${x.where} · ${x.at}`; b.className = "num";
+    li.append(a, b); ol.appendChild(li);
+  });
+}
+function resetIdle(){
+  clearTimeout(idleT);
+  idleT = setTimeout(() => { if (!autoTimer) say(rand(char.idle)); resetIdle(); }, 25000);
+}
+
+let hiroT, faceT;
+function hiroWalk(){
+  const h = $("hiro"); h.classList.add("walking");
+  clearTimeout(hiroT);
+  hiroT = setTimeout(() => { if (!autoTimer) h.classList.remove("walking"); }, 1300);
+}
+
+function tick(){
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = String(s % 60).padStart(2, "0");
+  $("sTime").textContent = h ? `${h}:${String(m).padStart(2,"0")}:${sec}` : `${m}:${sec}`;
+}
+
+// 指定地点の近くのストリートビューへ移動
+function jumpTo(latLng, radius){
+  return new Promise(resolve => {
+    svService.getPanorama({
+      location: latLng, radius,
+      source: google.maps.StreetViewSource.OUTDOOR,
+      preference: google.maps.StreetViewPreference.NEAREST
+    }, (data, status) => {
+      if (status === "OK") {
+        warping = true;
+        pano.setPano(data.location.pano);
+        pano.setPov({ heading: Math.random() * 360, pitch: 0 });
+        pano.setVisible(true);
+        resolve(true);
+      } else resolve(false);
+    });
+  });
+}
+
+// 今いる街の中のランダムな地点へ
+async function warp(first){
+  const center = new google.maps.LatLng(city.lat, city.lng);
+  for (let i = 0; i < 8; i++) {
+    const pt = first && i === 0 ? center :
+      google.maps.geometry.spherical.computeOffset(center, Math.sqrt(Math.random()) * city.r, Math.random() * 360);
+    if (await jumpTo(pt, first ? 300 : 150)) {
+      if (!first) { toast(`${city.name} のどこかへ`); say(rand(["わっ！ここどこ？","瞬間移動しちゃった","あれ、景色が変わった"])); }
+      return true;
+    }
+  }
+  return false;
+}
+
+// おまかせ散歩: なるべく前を向いたまま、ときどき曲がる
+function autoStep(){
+  const links = pano.getLinks() || [];
+  if (!links.length) { warp(false); return; }
+  const cur = pano.getPov().heading;
+  const diff = h => { const d = Math.abs(((h - cur) % 360 + 540) % 360 - 180); return d; };
+  const sorted = [...links].sort((a, b) => diff(a.heading) - diff(b.heading));
+  let next = sorted[0];
+  const turns = sorted.filter(l => diff(l.heading) > 20 && diff(l.heading) < 120);
+  if (turns.length && Math.random() < 0.18) next = turns[Math.floor(Math.random() * turns.length)];
+  if (diff(next.heading) > 150 && sorted.length > 1 && Math.random() < 0.7) next = sorted[1];
+  pano.setPano(next.pano);
+  smoothTurn(cur, next.heading);
+}
+function smoothTurn(from, to){
+  const delta = ((to - from) % 360 + 540) % 360 - 180;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { pano.setPov({ heading: to, pitch: 0 }); return; }
+  const t0 = performance.now(), dur = 900;
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur), e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2) / 2;
+    pano.setPov({ heading: from + delta * e, pitch: 0 });
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+$("autoBtn").addEventListener("click", () => {
+  const on = !autoTimer;
+  $("autoBtn").setAttribute("aria-pressed", on);
+  $("autoLabel").textContent = on ? "とめる" : "おまかせ";
+  if (on) { autoStep(); autoTimer = setInterval(autoStep, autoInterval()); $("hiro").classList.add("walking"); }
+  else { clearInterval(autoTimer); autoTimer = null; $("hiro").classList.remove("walking"); }
+});
+
+function autoInterval(){ return riding ? 2600 : 4500; }
+$("rideBtn").addEventListener("click", () => {
+  riding = !riding;
+  $("rideBtn").setAttribute("aria-pressed", riding);
+  $("rideLabel").textContent = riding ? char.unride : char.ride;
+  $("hiro").classList.toggle(rideClass(), riding);
+  say(char.rideSay[riding ? 0 : 1]);
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = setInterval(autoStep, autoInterval()); }
+});
+
+$("destBtn").addEventListener("click", () => {
+  const box = $("goBox"), on = box.hidden;
+  box.hidden = !on; $("destBtn").setAttribute("aria-pressed", on);
+  if (on) { $("goErr").hidden = true; $("goAddr").focus(); }
+});
+$("goBox").addEventListener("submit", async e => {
+  e.preventDefault();
+  const q = $("goAddr").value.trim(); if (!q) return;
+  $("goErr").hidden = true;
+  try {
+    const next = await geocode(q);
+    const prev = city; city = next;
+    if (await warp(true)) {
+      $("goBox").hidden = true; $("destBtn").setAttribute("aria-pressed", false); $("goAddr").value = "";
+      setTimeout(() => say(`${q}に着いた！`), 600);
+    } else { city = prev; throw new Error("その近くにはストリートビューがありませんでした。"); }
+  } catch (err) { $("goErr").textContent = err.message; $("goErr").hidden = false; }
+});
+
+$("warpBtn").addEventListener("click", () => warp(false));
+
+$("mapBtn").addEventListener("click", () => {
+  const box = $("mapbox"), on = box.hidden;
+  box.hidden = !on; $("mapBtn").setAttribute("aria-pressed", on);
+  if (on) { google.maps.event.trigger(minimap, "resize"); minimap.setCenter(pano.getPosition()); }
+});
+
+$("logBtn").addEventListener("click", () => {
+  const box = $("log"), on = box.hidden;
+  box.hidden = !on; $("logBtn").setAttribute("aria-pressed", on);
+});
+
+$("snapBtn").addEventListener("click", () => {
+  const p = pano.getPosition(); if (!p) return;
+  const item = {
+    pano: pano.getPano(), pov: pano.getPov(),
+    title: pano.getLocation()?.description || `${city.name} のどこか`,
+    at: $("sDist").textContent, time: $("sTime").textContent
+  };
+  logItems.unshift(item);
+  renderLog();
+  const h = $("hiro");
+  h.classList.add("facing");
+  say(rand(char.cheese));
+  clearTimeout(faceT);
+  setTimeout(() => { const f = $("flash"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); toast("記録しました"); }, 900);
+  faceT = setTimeout(() => h.classList.remove("facing"), 3200);
+});
+
+function renderLog(){
+  $("logEmpty").hidden = logItems.length > 0;
+  const ol = $("logList"); ol.innerHTML = "";
+  logItems.forEach(it => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    const t = document.createElement("span"), s = document.createElement("small");
+    t.textContent = it.title;
+    s.textContent = `${it.at} 歩いたところ · ${it.time}`;
+    s.className = "num";
+    b.append(t, s);
+    b.addEventListener("click", () => { warping = true; pano.setPano(it.pano); pano.setPov(it.pov); });
+    li.appendChild(b); ol.appendChild(li);
+  });
+}
+
+let toastT;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 1600);
+}
+setupChars();
+</script>
+</body>
+</html>
