@@ -721,7 +721,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-p";
+const VERSION = "9/27-q";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1060,7 +1060,7 @@ function payload(){
   if (myPos) { p.lat = +myPos.lat().toFixed(6); p.lng = +myPos.lng().toFixed(6); }
   if (isHost) { p.room = room; p.state = game && !ended ? "playing" : "lobby"; }
   if (game && !ended) { p.gid = game.startAt; p.roles = game.roles; } // つかまった情報を全員で持ち合う
-  if (walkRoom && pano) { p.pano = pano.getPano(); p.hd = Math.round(pano.getPov().heading); p.ride = riding; } // ついていく・並んで歩く用
+  if (walkRoom && pano) { p.pano = pano.getPano(); p.hd = Math.round(pano.getPov().heading); p.ride = riding; p.fl = followId; } // ついていく・並んで歩く用
   return p;
 }
 let lastTrack = 0, trackTimer = null;
@@ -1106,8 +1106,13 @@ function onSync(){
   renderLobby();
   if (game && !ended) { renderOthers(); updateRadar(); checkEnd(); }
   if (walkRoom && mode === "walk") {
+    // 位置を送り直す瞬間などに一覧から一瞬消えることがあるので、10秒戻らなかったときだけ「帰った」とする
+    for (const id in prev) if (id !== myId && !players[id]) {
+      const since = prev[id].goneAt || Date.now();
+      if (Date.now() - since < 10000) players[id] = { ...prev[id], goneAt: since };
+      else toast(`${prev[id].name} が帰りました`);
+    }
     if (Object.keys(prev).length) for (const id in players) if (id !== myId && !prev[id]) toast(`${players[id].name} が来ました`);
-    for (const id in prev) if (id !== myId && !players[id]) toast(`${prev[id].name} が帰りました`);
     renderOthers(); renderFriends();
     if (followId) { const t = players[followId]; if (t) followStep(t); else stopFollow(`${prev[followId]?.name || "相手"}がいなくなりました`); }
   }
@@ -1350,7 +1355,7 @@ function renderOthers(){
     const ll = new google.maps.LatLng(p.lat, p.lng), d0 = D(myPos, ll), d = Math.max(3, d0);
     const rel = norm(HEAD(myPos, ll) - pov.heading);
     let el = layer.querySelector(`[data-id="${p.id}"]`);
-    if (d > 90 || Math.abs(rel) > half + 5 || (mode === "walk" && d0 <= BUDDY_D)) { if (el) el.remove(); return; }
+    if (d > 90 || Math.abs(rel) > half + 5 || (mode === "walk" && isBuddy(p, d0))) { if (el) el.remove(); return; }
     seen.add(p.id);
     const key = p.char + JSON.stringify(p.look) + p.role + p.name;
     if (!el) {
@@ -1684,7 +1689,10 @@ async function startWalk(near){
 }
 function walkMove(){
   const p = pano.getPosition(); if (!p) return;
-  if (followId && !followMoving) { const t = players[followId]; if (!t || t.pano !== pano.getPano()) stopFollow("ついていくのをやめました"); }
+  if (followId && !followMoving) {
+    const t = players[followId], here = pano.getPano();
+    if (t && here !== t.pano && here !== lastFollowPano) stopFollow("ついていくのをやめました");
+  }
   followMoving = false;
   if (lastPos && !warping) {
     const d = D(lastPos, p);
@@ -1851,7 +1859,10 @@ $("homeBtn").addEventListener("click", () => location.reload());
 // 下のバーの高さ(スマホでは2段になる)に合わせて、パネルやキャラの位置を決める
 new ResizeObserver(() => { const h = $("bar").offsetHeight; if (h) document.documentElement.style.setProperty("--barTop", (14 + h) + "px"); }).observe($("bar"));
 // 通信が閉じたままになっていたら、つなぎ直す(バックグラウンドのあとなど)
-setInterval(() => { if (ch && room && !botMode && !["joined", "joining"].includes(ch.state)) rejoin(); }, 5000);
+setInterval(() => {
+  if (ch && room && !botMode && !["joined", "joining"].includes(ch.state)) rejoin();
+  else if (ch && walkRoom) onSync();
+}, 5000);
 
 // ================= いっしょに歩く(部屋とチャット) =================
 let walkRoom = false, lastChat = 0;
@@ -1944,7 +1955,7 @@ function onChat(m){
   if ($("chat").hidden) { $("chatDot").hidden = false; if (!seen) toast(`${m.name}「${text}」`); }
 }
 // ---------- ついていく ----------
-let followId = null, followMoving = false;
+let followId = null, followMoving = false, lastFollowPano = null;
 function startFollow(id){
   const t = players[id]; if (!t) return;
   if (autoTimer) $("autoBtn").click();
@@ -1967,15 +1978,18 @@ function followStep(t){
   const ll = t.lat != null ? new google.maps.LatLng(t.lat, t.lng) : null;
   followMoving = true;
   if (ll && myPos && D(myPos, ll) > 150) { jumpTo(ll, 60).then(ok => { if (!ok) followMoving = false; }); return; }
+  lastFollowPano = t.pano;
   pano.setPano(t.pano);
   if (t.hd != null) smoothTurn(pano.getPov().heading, t.hd);
 }
 // ---------- 並んで歩く: すぐ近くの友だちを自分の隣に後ろ姿で並べる ----------
 const BUDDY_D = 12;
+// すぐ近くの人と、ついていっている/ついてきてくれている人(遅れて少し離れても60mまで)は隣に並べる
+const isBuddy = (p, d) => d <= BUDDY_D || ((p.id === followId || p.fl === myId) && d <= 60);
 function renderBuddies(){
   const box = $("buddies");
   if (mode !== "walk" || !walkRoom || !myPos || $("hiro").hidden) { box.innerHTML = ""; return; }
-  const near = others().filter(p => D(myPos, new google.maps.LatLng(p.lat, p.lng)) <= BUDDY_D)
+  const near = others().filter(p => isBuddy(p, D(myPos, new google.maps.LatLng(p.lat, p.lng))))
     .sort((a, b) => a.id < b.id ? -1 : 1).slice(0, 4);
   const w = $("hiro").offsetWidth || 110, slots = [1, -1, 2, -2], seen = new Set();
   near.forEach((p, i) => {
