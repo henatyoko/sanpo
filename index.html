@@ -105,13 +105,13 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #bar svg{width:18px;height:18px;flex:none}
 
 #mapbox{
-  right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  right:12px;bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
   width:min(300px,calc(100vw - 24px));height:220px;overflow:hidden;padding:0;
 }
 #minimap{width:100%;height:100%}
 
 #log{
-  left:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  left:12px;bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
   width:min(320px,calc(100vw - 24px));max-height:46vh;overflow:auto;padding:12px 14px;
 }
 #log h2{margin:0 0 8px;font-size:14px;letter-spacing:.08em;color:var(--lantern)}
@@ -135,7 +135,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
 #hiro.gallop.walking .hair-tips{animation-duration:.34s}
 #goBox{
-  left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%);bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
   width:min(420px,calc(100vw - 24px));padding:12px 14px;display:grid;gap:8px;z-index:7;
 }
 #goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
@@ -154,7 +154,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   #place{top:calc(78px + env(safe-area-inset-top,0px));right:auto;left:12px;max-width:calc(100% - 24px);padding:5px 10px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .5s} #place.fade{opacity:0;pointer-events:none}
   #bar button span{display:none}
   #bar button{padding:12px}
-  #mapbox,#log{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion:reduce){/* キャラ選び */
 .field .lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
@@ -167,7 +166,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
 #hiro.gallop.walking .hair-tips{animation-duration:.34s}
 #goBox{
-  left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%);bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
   width:min(420px,calc(100vw - 24px));padding:12px 14px;display:grid;gap:8px;z-index:7;
 }
 #goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
@@ -179,7 +178,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 /* ---------- ひろ ---------- */
 #hiro{
   position:fixed;z-index:4;left:50%;transform:translateX(-50%);
-  bottom:calc(78px + env(safe-area-inset-bottom,0px));
+  bottom:calc(var(--barTop,72px) + 6px + env(safe-area-inset-bottom,0px));
   height:min(30vh,240px);aspect-ratio:120/200;max-width:100%;
   pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
 }
@@ -224,7 +223,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 @media (prefers-reduced-motion:reduce){#hiro *{animation:none!important}}
 #say{
   position:fixed;z-index:6;left:50%;transform:translateX(-50%);
-  bottom:calc(78px + min(30vh,240px) + 6px + env(safe-area-inset-bottom,0px));
+  bottom:calc(var(--barTop,72px) + 6px + min(30vh,240px) + 6px + env(safe-area-inset-bottom,0px));
   display:flex;align-items:center;gap:10px;max-width:calc(100% - 32px);
   background:var(--paper);color:var(--ink);border-radius:18px;padding:8px 16px 8px 8px;
   box-shadow:0 6px 18px rgba(0,0,0,.3);font-weight:700;font-size:15px;line-height:1.5;
@@ -323,7 +322,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 @media (prefers-reduced-motion:reduce){#tagBtn{animation:none}}
 /* 進む方向ボタン(キャラに隠れるストリートビューの矢印の代わり) */
 #pad{
-  position:fixed;z-index:4;left:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px));
+  position:fixed;z-index:4;left:12px;bottom:calc(var(--barTop,72px) + 20px + env(safe-area-inset-bottom,0px));
   width:144px;height:144px;border-radius:50%;background:rgba(20,24,20,.35);border:1px solid var(--glass-line);
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
@@ -343,7 +342,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 }
 #bar .dot{width:8px;height:8px;border-radius:50%;background:var(--oni);margin-left:-4px;align-self:flex-start}
 #chat{
-  left:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  left:12px;bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
   width:min(340px,calc(100vw - 24px));max-height:58vh;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:8px;padding:12px 14px;z-index:7;
 }
 #chat .chatHead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
@@ -705,7 +704,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-f";
+const VERSION = "9/27-g";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1815,6 +1814,10 @@ function recordPhoto(){
   setTimeout(() => { flash(); toast("記録しました"); }, 900);
 }
 $("homeBtn").addEventListener("click", () => location.reload());
+// 下のバーの高さ(スマホでは2段になる)に合わせて、パネルやキャラの位置を決める
+new ResizeObserver(() => { const h = $("bar").offsetHeight; if (h) document.documentElement.style.setProperty("--barTop", (14 + h) + "px"); }).observe($("bar"));
+// 通信が閉じたままになっていたら、つなぎ直す(バックグラウンドのあとなど)
+setInterval(() => { if (ch && room && !botMode && !["joined", "joining"].includes(ch.state)) rejoin(); }, 5000);
 
 // ================= いっしょに歩く(部屋とチャット) =================
 let walkRoom = false, lastChat = 0;
