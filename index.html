@@ -65,6 +65,12 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 }
 .go:disabled{opacity:.5;cursor:wait}
 .err{color:#ffb4a2;font-size:13px;line-height:1.7;margin:0}
+.together{display:grid;gap:8px;padding-top:14px;border-top:1px solid var(--glass-line)}
+.together .lbl{margin:0;font-size:13px;color:var(--muted);letter-spacing:.06em}
+.sub{padding:11px 14px;border-radius:999px;border:1px solid var(--lantern);background:transparent;color:var(--lantern);font-weight:800;font-size:15px}
+.sub:disabled{opacity:.5;cursor:wait}
+.joinrow{display:grid;grid-template-columns:96px 1fr;gap:8px}
+.joinrow input{padding:10px 12px;border-radius:12px;border:1px solid var(--glass-line);background:rgba(255,255,255,.06);color:var(--on-glass);font:inherit;font-size:18px;letter-spacing:.2em;text-align:center;min-width:0}
 
 /* ---------- 散歩画面 ---------- */
 #panoWrap{position:fixed;inset:0}
@@ -329,6 +335,34 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #pad button svg{width:18px;height:18px}
 #pad button:disabled{opacity:.3}
 .sprite.catchable{pointer-events:auto;cursor:pointer}
+/* いっしょに歩く: ふきだし・チャット */
+.sprite .bubble{
+  position:absolute;bottom:100%;left:50%;transform:translate(-50%,-30px);width:max-content;max-width:200px;
+  background:var(--paper);color:var(--ink);padding:6px 10px;border-radius:12px;font-size:13px;font-weight:700;line-height:1.4;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);white-space:normal;
+}
+#bar .dot{width:8px;height:8px;border-radius:50%;background:var(--oni);margin-left:-4px;align-self:flex-start}
+#chat{
+  left:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(340px,calc(100vw - 24px));max-height:58vh;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:8px;padding:12px 14px;z-index:7;
+}
+#chat .chatHead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
+#chat .chatHead b{color:var(--lantern)}
+#chat .chatHead span b{font-size:18px;letter-spacing:.15em;color:var(--on-glass)}
+#friends{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+#friends li{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+#friends svg{width:28px;height:28px;flex:none}
+#friends small{color:var(--muted);font-weight:400;margin-left:auto}
+#friends button{border:0;border-radius:999px;padding:6px 12px;background:var(--lantern);color:#2a1c05;font-weight:800;font-size:13px}
+#friends .none{color:var(--muted);font-weight:400;font-size:13px}
+#chatLog{list-style:none;margin:0;padding:0;overflow:auto;min-height:40px;display:grid;gap:4px;align-content:start;font-size:14px;line-height:1.5}
+#chatLog b{color:var(--lantern);margin-right:6px}
+#chatLog .mine b{color:var(--muted)}
+#quick{display:flex;flex-wrap:wrap;gap:6px}
+#quick button{border:1px solid var(--glass-line);border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.06);color:var(--on-glass);font-size:13px}
+#chatForm{display:flex;gap:8px}
+#chatForm input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
+#chatForm button{border:0;border-radius:10px;padding:0 16px;background:var(--lantern);color:#2a1c05;font-weight:900}
 .tabs.mode{grid-template-columns:1fr 1fr;padding:5px}
 .tabs.mode button{padding:12px;font-size:16px}
 #oniPane{display:grid;gap:14px}
@@ -374,6 +408,14 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
         <select id="wcity"></select>
       </div>
       <button class="go" id="walkBtn">歩きはじめる</button>
+      <div class="together">
+        <p class="lbl">友だちと歩く</p>
+        <button type="button" class="sub" id="wMakeBtn">部屋をつくって歩く</button>
+        <div class="joinrow">
+          <input id="wcode" type="text" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="あいことば（4けた）">
+          <button type="button" class="sub" id="wJoinBtn">あいことばで入る</button>
+        </div>
+      </div>
     </div>
 
     <div id="oniPane" hidden>
@@ -502,6 +544,13 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
 <div class="hud" id="mapbox" hidden><div id="minimap"></div></div>
 
+<div class="hud" id="chat" hidden>
+  <div class="chatHead"><b>いっしょに歩く</b><span>あいことば <b class="num" id="chatCode"></b></span></div>
+  <ul id="friends"></ul>
+  <ol id="chatLog"></ol>
+  <div id="quick"></div>
+  <form id="chatForm"><input id="chatText" type="text" maxlength="60" autocomplete="off" enterkeyhint="send" aria-label="メッセージ"><button type="submit">送る</button></form>
+</div>
 <nav class="hud" id="bar" hidden>
   <button id="homeBtn" title="はじめの画面にもどる">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg>
@@ -526,6 +575,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <button id="mapBtn" aria-pressed="false" title="地図">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14M15 6v14"/></svg>
     <span>地図</span>
+  </button>
+  <button id="chatBtn" aria-pressed="false" title="いっしょに歩いている人・チャット" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>
+    <span>みんな</span><i class="dot" id="chatDot" hidden></i>
   </button>
   <button id="destBtn" aria-pressed="false" title="住所で行き先を選ぶ">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -652,7 +705,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-e";
+const VERSION = "9/27-f";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1003,9 +1056,10 @@ async function connect(code){
   if (!window.supabase) throw new Error("通信の準備ができていません。再読み込みしてください。");
   // 切れた通信に早く気づけるよう、生存確認を短い間隔で送る
   if (!sb) sb = window.supabase.createClient(SB_URL, SB_KEY, { realtime: { heartbeatIntervalMs: 5000 } });
-  ch = sb.channel("sanpo-oni-" + code, { config: { presence: { key: myId }, broadcast: { self: true } } });
+  ch = sb.channel((walkRoom ? "sanpo-walk-" : "sanpo-oni-") + code, { config: { presence: { key: myId }, broadcast: { self: true } } });
   ch.on("presence", { event: "sync" }, onSync);
   ch.on("broadcast", { event: "game" }, ({ payload }) => onGame(payload));
+  ch.on("broadcast", { event: "chat" }, ({ payload }) => onChat(payload));
   await new Promise((res, rej) => {
     const to = setTimeout(() => rej(new Error("つながりませんでした。通信環境を確認してください。")), 10000);
     ch.subscribe(st => {
@@ -1029,6 +1083,11 @@ function onSync(){
   if (!isHost) { const h = Object.values(players).find(p => p.host); if (h && h.room) room = h.room; }
   renderLobby();
   if (game && !ended) { renderOthers(); updateRadar(); checkEnd(); }
+  if (walkRoom && mode === "walk") {
+    if (Object.keys(prev).length) for (const id in players) if (id !== myId && !prev[id]) toast(`${players[id].name} が来ました`);
+    for (const id in prev) if (id !== myId && !players[id]) toast(`${prev[id].name} が帰りました`);
+    renderOthers(); renderFriends();
+  }
 }
 const hostP = () => Object.values(players).find(p => p.host);
 // スマホで画面を消したりアプリを切り替えたりすると通信が止まるので、戻ってきたらすぐつなぎ直す
@@ -1211,7 +1270,9 @@ function talk(d){
   sinceTalk += d;
   if (sinceTalk > 90 + Math.random() * 80) { sinceTalk = 0; say(rand(myRole === "oni" ? ONI_TALK : RUN_TALK)); }
 }
-function others(){ return Object.values(players).filter(p => p.id !== myId && game && game.ids.includes(p.id) && p.lat != null); }
+function others(){
+  return Object.values(players).filter(p => p.id !== myId && p.lat != null && (mode === "walk" ? walkRoom : game && game.ids.includes(p.id)));
+}
 function nearest(role){
   if (!myPos) return null;
   let best = null;
@@ -1256,7 +1317,7 @@ $("tagBtn").addEventListener("click", () => tryTag());
 const spriteCache = {};
 function renderOthers(){
   const layer = $("others");
-  if (!game || ended || !myPos || !pano) { layer.innerHTML = ""; return; }
+  if ((mode === "walk" ? !walkRoom : !game || ended) || !myPos || !pano) { layer.innerHTML = ""; return; }
   const pov = pano.getPov(), zoom = pano.getZoom() || 1;
   const fov = 180 / Math.pow(2, zoom), half = fov / 2;
   const W = innerWidth, H = innerHeight, focal = (W / 2) / Math.tan(half * Math.PI / 180);
@@ -1285,6 +1346,11 @@ function renderOthers(){
     const feet = Math.min(H - 80, H / 2 + (2.3 - pov.pitch * .03) * focal / d);
     el.style.left = x + "px"; el.style.top = feet + "px"; el.style.height = h + "px";
     el.style.zIndex = String(1000 - Math.round(d));
+    const cb = bubbles[p.id], bub = el.querySelector(".bubble");
+    if (cb && cb.until > Date.now()) {
+      if (bub) bub.textContent = cb.text;
+      else { const b = document.createElement("span"); b.className = "bubble"; b.textContent = cb.text; el.appendChild(b); }
+    } else if (bub) bub.remove();
   });
   [...layer.children].forEach(el => { if (!seen.has(el.dataset.id)) el.remove(); });
 }
@@ -1513,7 +1579,7 @@ function ensurePano(){
   pathLine = new google.maps.Polyline({ map: minimap, strokeColor: "#e9a23b", strokeWeight: 4, strokeOpacity: .9 });
   minimap.addListener("click", e => { if (mode === "walk") jumpTo(e.latLng, 60); });
   pano.addListener("position_changed", () => mode === "walk" ? walkMove() : onMove());
-  pano.addListener("pov_changed", () => { turnPad(); if (mode === "oni") { renderOthers(); updateRadar(); } });
+  pano.addListener("pov_changed", () => { turnPad(); if (mode === "oni") { renderOthers(); updateRadar(); } else if (walkRoom) renderOthers(); });
   pano.addListener("links_changed", renderPad);
   pano.addListener("pano_changed", () => {
     if (mode !== "walk") return;
@@ -1549,20 +1615,31 @@ function turnPad(){
 }
 function setBar(m){
   ["autoBtn","logBtn","destBtn","warpBtn"].forEach(id => $(id).hidden = m !== "walk");
+  $("chatBtn").hidden = !(m === "walk" && walkRoom);
 }
 
 let city, lastPos = null, dist = 0, steps = 0, startTime = 0, autoTimer = null, logItems = [], walkTimer = null;
+async function pickCity(){
+  const q = $("waddr").value.trim();
+  if (q) { const g = await geocode(q); return { name: `${q} ${g.full || ""}`, label: q, lat: g.lat, lng: g.lng, r: 600 }; }
+  const c = CITIES[+wcitySel.value];
+  return c.random ? CITIES[Math.floor(Math.random() * (CITIES.length - 1))] : c;
+}
 $("walkBtn").addEventListener("click", async () => {
   $("err").hidden = true; $("walkBtn").disabled = true;
   try {
     await mapsLoaded;
     saveName();
-    const q = $("waddr").value.trim();
-    if (q) { const g = await geocode(q); city = { name: `${q} ${g.full || ""}`, label: q, lat: g.lat, lng: g.lng, r: 600 }; }
-    else { city = CITIES[+wcitySel.value]; if (city.random) city = CITIES[Math.floor(Math.random() * (CITIES.length - 1))]; }
+    city = await pickCity();
+    await startWalk();
+  } catch (e) { showErr(e.message); $("walkBtn").disabled = false; }
+});
+// near を渡すと、その近く(友だちのいる場所)から歩きはじめる
+async function startWalk(near){
     mode = "walk";
     ensurePano();
-    if (!(await warp(true))) throw new Error("この場所の近くでストリートビューが見つかりませんでした。別の場所を選んでください。");
+    const ok = (near && await jumpTo(near, 80)) || await warp(true);
+    if (!ok) throw new Error("この場所の近くでストリートビューが見つかりませんでした。別の場所を選んでください。");
     $("start").hidden = true;
     applyChar(); setBar("walk");
     ["stats","place","bar","hiro","pad"].forEach(id => $(id).hidden = false); renderPad();
@@ -1571,8 +1648,7 @@ $("walkBtn").addEventListener("click", async () => {
     setTimeout(() => google.maps.event.trigger(pano, "resize"), 300);
     setTimeout(() => say(char.hello(shortName())), 900);
     resetIdle();
-  } catch (e) { showErr(e.message); $("walkBtn").disabled = false; }
-});
+}
 function walkMove(){
   const p = pano.getPosition(); if (!p) return;
   if (lastPos && !warping) {
@@ -1583,6 +1659,7 @@ function walkMove(){
   marker.setPosition(p); minimap.panTo(p);
   $("sDist").textContent = dist < 1000 ? `${Math.round(dist)} m` : `${(dist/1000).toFixed(2)} km`;
   $("sSteps").textContent = steps;
+  if (walkRoom) { track(); renderOthers(); renderFriends(); }
 }
 function walkTick(){
   const s = Math.floor((Date.now() - startTime) / 1000);
@@ -1738,6 +1815,109 @@ function recordPhoto(){
   setTimeout(() => { flash(); toast("記録しました"); }, 900);
 }
 $("homeBtn").addEventListener("click", () => location.reload());
+
+// ================= いっしょに歩く(部屋とチャット) =================
+let walkRoom = false, lastChat = 0;
+const bubbles = {}, friendMarkers = {};
+const QUICK = ["こっち来て！","いい景色！","ちょっと待って","おなかすいた〜","先に行くね","ここ見て！"];
+$("wMakeBtn").addEventListener("click", async () => {
+  $("err").hidden = true; $("wMakeBtn").disabled = true;
+  try {
+    await mapsLoaded;
+    saveName();
+    city = await pickCity();
+    walkRoom = true; isHost = true;
+    room = { code: String(Math.floor(1000 + Math.random() * 9000)), walk: true, city };
+    await connect(room.code);
+    await startWalk();
+    openTogether();
+    setTimeout(() => say(`あいことばは ${room.code}。友だちに教えてね`, true), 1200);
+  } catch (e) { walkRoom = false; isHost = false; showErr(e.message); $("wMakeBtn").disabled = false; }
+});
+$("wJoinBtn").addEventListener("click", async () => {
+  $("err").hidden = true;
+  const code = $("wcode").value.replace(/\D/g, "");
+  if (code.length !== 4) { showErr("あいことばは4けたの数字です。"); return; }
+  $("wJoinBtn").disabled = true;
+  try {
+    await mapsLoaded;
+    saveName();
+    walkRoom = true;
+    await connect(code);
+    for (let i = 0; i < 12 && !hostP(); i++) await new Promise(r => setTimeout(r, 250));
+    const h = hostP();
+    if (!h || !h.room || !h.room.walk) { await sb.removeChannel(ch); ch = null; throw new Error("そのお散歩の部屋が見つかりませんでした。あいことばを確かめてください。"); }
+    room = h.room; city = h.room.city;
+    await startWalk(h.lat != null ? new google.maps.LatLng(h.lat, h.lng) : null);
+    openTogether();
+    setTimeout(() => say(`${h.name}と合流！`, true), 1200);
+  } catch (e) { walkRoom = false; showErr(e.message); $("wJoinBtn").disabled = false; }
+});
+function openTogether(){
+  $("chatCode").textContent = room.code;
+  $("quick").innerHTML = "";
+  QUICK.forEach(t => { const b = document.createElement("button"); b.type = "button"; b.textContent = t; b.addEventListener("click", () => sendChat(t)); $("quick").appendChild(b); });
+  lastTrack = 0; track(); renderFriends();
+}
+$("chatBtn").addEventListener("click", () => {
+  const box = $("chat"), on = box.hidden;
+  box.hidden = !on; $("chatBtn").setAttribute("aria-pressed", on);
+  if (on) { $("chatDot").hidden = true; $("log").hidden = true; $("logBtn").setAttribute("aria-pressed", false); renderFriends(); $("chatLog").scrollTop = 1e9; }
+});
+$("logBtn").addEventListener("click", () => { if (!$("log").hidden) { $("chat").hidden = true; $("chatBtn").setAttribute("aria-pressed", false); } });
+$("chatForm").addEventListener("submit", e => { e.preventDefault(); sendChat($("chatText").value); $("chatText").value = ""; });
+function sendChat(text){
+  text = String(text).trim().slice(0, 60);
+  if (!text || !ch || Date.now() - lastChat < 700) return;
+  lastChat = Date.now();
+  ch.send({ type: "broadcast", event: "chat", payload: { id: myId, name: me().name, text, t: Date.now() } });
+}
+function onChat(m){
+  if (!walkRoom || !m || !m.text) return;
+  const text = String(m.text).slice(0, 60), mine = m.id === myId;
+  const li = document.createElement("li"), b = document.createElement("b");
+  b.textContent = mine ? "あなた" : String(m.name || "だれか"); li.className = mine ? "mine" : "";
+  li.append(b, document.createTextNode(text));
+  $("chatLog").appendChild(li);
+  while ($("chatLog").children.length > 60) $("chatLog").firstChild.remove();
+  $("chatLog").scrollTop = 1e9;
+  if (mine) { say(text); return; }
+  bubbles[m.id] = { text, until: Date.now() + 6000 };
+  renderOthers(); setTimeout(renderOthers, 6100);
+  const seen = document.querySelector(`#others [data-id="${m.id}"]`);
+  if ($("chat").hidden) { $("chatDot").hidden = false; if (!seen) toast(`${m.name}「${text}」`); }
+}
+function renderFriends(){
+  if (!walkRoom) return;
+  const list = Object.values(players).filter(p => p.id !== myId);
+  // 地図の上の友だち
+  list.forEach(p => {
+    if (p.lat == null || !minimap) return;
+    const ll = new google.maps.LatLng(p.lat, p.lng);
+    let mk = friendMarkers[p.id];
+    if (!mk) mk = friendMarkers[p.id] = new google.maps.Marker({ map: minimap, title: p.name,
+      label: { text: String(p.name).slice(0, 1), color: "#2a1c05", fontWeight: "900", fontSize: "11px" },
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 9, fillColor: "#e9a23b", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 } });
+    mk.setPosition(ll);
+  });
+  for (const id in friendMarkers) if (!players[id]) { friendMarkers[id].setMap(null); delete friendMarkers[id]; }
+  if ($("chat").hidden) return;
+  const ul = $("friends"); ul.innerHTML = "";
+  if (!list.length) { ul.innerHTML = `<li class="none">まだだれもいません。あいことばを友だちに伝えてね</li>`; return; }
+  list.forEach((p, i) => {
+    const li = document.createElement("li");
+    const L = buildLook(p.char, p.look);
+    const d = p.lat != null && myPos ? D(myPos, new google.maps.LatLng(p.lat, p.lng)) : null;
+    li.innerHTML = `${svgFace(L.face, "fr" + i)}<span>${esc(p.name)}</span><small>${d == null ? "" : d < 1000 ? `約${Math.round(d)}m` : `約${(d / 1000).toFixed(1)}km`}</small>`;
+    const b = document.createElement("button"); b.type = "button"; b.textContent = "合流";
+    b.disabled = p.lat == null;
+    b.addEventListener("click", async () => {
+      if (await jumpTo(new google.maps.LatLng(p.lat, p.lng), 80)) { say(`${p.name}のところに来たよ`); $("chat").hidden = true; $("chatBtn").setAttribute("aria-pressed", false); }
+      else toast("近くに道が見つかりませんでした");
+    });
+    li.appendChild(b); ul.appendChild(li);
+  });
+}
 
 setupChars();
 $("ver").textContent = VERSION;
