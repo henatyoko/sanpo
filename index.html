@@ -703,7 +703,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-k";
+const VERSION = "9/27-l";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1013,10 +1013,13 @@ console.error = (...args) => {
   if (m) showErr(`Googleマップのエラーです（${m[1]}）。キーの設定を確認してください。`);
   origConsoleError(...args);
 };
-async function geocode(q){
+// near を渡すと、その周り(約50km)の候補を優先して探す(同じ名前の場所が各地にあるので)
+async function geocode(q, near){
   await mapsLoaded;
   try {
-    const r = await new google.maps.Geocoder().geocode({ address: q });
+    const req = { address: q };
+    if (near) req.bounds = new google.maps.Circle({ center: near, radius: 50000 }).getBounds();
+    const r = await new google.maps.Geocoder().geocode(req);
     const loc = r.results[0].geometry.location;
     return { label: q, lat: loc.lat(), lng: loc.lng(), full: r.results[0].formatted_address };
   } catch (e) {
@@ -1788,7 +1791,7 @@ $("goBox").addEventListener("submit", async e => {
   const q = $("goAddr").value.trim(); if (!q) return;
   $("goErr").hidden = true;
   try {
-    const g = await geocode(q);
+    const g = await geocode(q, myPos);
     const prev = city; city = { name: `${q} ${g.full || ""}`, label: q, lat: g.lat, lng: g.lng, r: 600 };
     if (await warp(true)) {
       closeMap(); $("goAddr").value = "";
