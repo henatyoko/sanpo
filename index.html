@@ -137,7 +137,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .walker.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
 .walker.gallop.walking .hair-tips{animation-duration:.34s}
 /* 地図パネルの上の行き先入力(お散歩のとき) */
-#goBox{padding:12px 14px;display:grid;gap:8px}
+#goBox{padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+#goBox > *,#goBox .row > *{min-width:0}
+#goBox .row input{width:100%}
 #goBox[hidden]{display:none}
 #goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
 #goBox .row{display:flex;gap:8px}
@@ -170,7 +172,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .walker.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
 .walker.gallop.walking .hair-tips{animation-duration:.34s}
 /* 地図パネルの上の行き先入力(お散歩のとき) */
-#goBox{padding:12px 14px;display:grid;gap:8px}
+#goBox{padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+#goBox > *,#goBox .row > *{min-width:0}
+#goBox .row input{width:100%}
 #goBox[hidden]{display:none}
 #goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
 #goBox .row{display:flex;gap:8px}
@@ -717,7 +721,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-o";
+const VERSION = "9/27-p";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
