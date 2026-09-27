@@ -143,6 +143,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #goBox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
 #goBox button{border:0;border-radius:10px;padding:0 16px;background:var(--lantern);color:#2a1c05;font-weight:900}
 #goBox .err{margin:0}
+#goBox .warp{border:1px solid var(--glass-line);border-radius:10px;padding:10px;background:rgba(255,255,255,.06);color:var(--on-glass);font-weight:700}
+.snapNow{width:100%;margin-bottom:10px;border:0;border-radius:10px;padding:10px;background:var(--lantern);color:#2a1c05;font-weight:900}
 #toast{
   position:fixed;left:50%;top:calc(80px + env(safe-area-inset-top,0px));transform:translateX(-50%);
   background:var(--moss);color:var(--paper);padding:8px 16px;border-radius:999px;font-weight:700;
@@ -174,6 +176,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #goBox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
 #goBox button{border:0;border-radius:10px;padding:0 16px;background:var(--lantern);color:#2a1c05;font-weight:900}
 #goBox .err{margin:0}
+#goBox .warp{border:1px solid var(--glass-line);border-radius:10px;padding:10px;background:rgba(255,255,255,.06);color:var(--on-glass);font-weight:700}
+.snapNow{width:100%;margin-bottom:10px;border:0;border-radius:10px;padding:10px;background:var(--lantern);color:#2a1c05;font-weight:900}
 #toast{transition:none}}
 /* ---------- ひろ ---------- */
 #hiro{
@@ -522,10 +526,12 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:non
   <label for="goAddr">次の行き先（住所や場所の名前）</label>
   <div class="row"><input id="goAddr" type="text" autocomplete="off" placeholder="例：東京タワー"><button type="submit">行く</button></div>
   <p class="err" id="goErr" hidden></p>
+  <button type="button" id="warpBtn" class="warp">この街のどこかへワープ</button>
 </form>
 <div class="hud" id="log" hidden>
+  <button type="button" id="snapNow" class="snapNow">この場所を記録する</button>
   <h2>撮った景色</h2>
-  <p class="empty" id="logEmpty">気になる景色で「記録」を押すと、ここに残ります。</p>
+  <p class="empty" id="logEmpty">気になる景色で「この場所を記録する」を押すと、ここに残ります。</p>
   <ol id="logList"></ol>
   <h3>おみやげ・できごと</h3>
   <p class="empty" id="souvEmpty">歩いていると、いろんなことが起きます。</p>
@@ -567,13 +573,9 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:non
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 18h9M16 18L13 4h3"/></svg>
     <span id="rideLabel">降りる</span>
   </button>
-  <button id="snapBtn" title="この場所を記録">
+  <button id="snapBtn" aria-pressed="false" title="この場所を記録・思い出">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
     <span id="snapLabel">記録</span>
-  </button>
-  <button id="logBtn" aria-pressed="false" title="見つけた場所">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 12h14M5 19h9"/></svg>
-    <span>思い出</span>
   </button>
   <button id="mapBtn" aria-pressed="false" title="地図">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14M15 6v14"/></svg>
@@ -583,13 +585,9 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:non
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>
     <span>みんな</span><i class="dot" id="chatDot" hidden></i>
   </button>
-  <button id="destBtn" aria-pressed="false" title="住所で行き先を選ぶ">
+  <button id="destBtn" aria-pressed="false" title="住所で行き先を選ぶ・ワープ">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-    <span>行き先</span>
-  </button>
-  <button id="warpBtn" title="この街の別の場所へ">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
-    <span>ワープ</span>
+    <span>移動</span>
   </button>
 </nav>
 
@@ -708,7 +706,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-i";
+const VERSION = "9/27-j";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1538,12 +1536,17 @@ function hiroWalk(){
   const h = $("hiro"); h.classList.add("walking");
   clearTimeout(hiroT); hiroT = setTimeout(() => { if (!autoTimer) h.classList.remove("walking"); }, 1300);
 }
+// お散歩では「記録」ボタンで思い出パネルを開き、その中の「この場所を記録する」で記録する
 $("snapBtn").addEventListener("click", () => {
-  if (mode === "walk" && pano) recordPhoto();
+  if (mode === "walk") { toggleLog(); return; }
+  cheese();
+});
+$("snapNow").addEventListener("click", () => { if (pano) recordPhoto(); cheese(); });
+function cheese(){
   const h = $("hiro"); h.classList.add("facing");
   say(rand(char.cheese));
   clearTimeout(faceT); faceT = setTimeout(() => h.classList.remove("facing"), 3000);
-});
+}
 $("mapBtn").addEventListener("click", () => {
   const box = $("mapbox"), on = box.hidden;
   box.hidden = !on; $("mapBtn").setAttribute("aria-pressed", on);
@@ -1619,7 +1622,7 @@ function turnPad(){
   $("pad").querySelectorAll("button").forEach(b => b.style.transform = `rotate(${norm(+b.dataset.heading - h)}deg) translateY(-50px)`);
 }
 function setBar(m){
-  ["autoBtn","logBtn","destBtn","warpBtn"].forEach(id => $(id).hidden = m !== "walk");
+  ["autoBtn","destBtn"].forEach(id => $(id).hidden = m !== "walk");
   $("chatBtn").hidden = !(m === "walk" && walkRoom);
 }
 
@@ -1784,7 +1787,7 @@ $("autoBtn").addEventListener("click", () => {
 $("destBtn").addEventListener("click", () => {
   const box = $("goBox"), on = box.hidden;
   box.hidden = !on; $("destBtn").setAttribute("aria-pressed", on);
-  if (on) { $("goErr").hidden = true; $("goAddr").focus(); }
+  if (on) { $("goErr").hidden = true; if (!matchMedia("(pointer: coarse)").matches) $("goAddr").focus(); }
 });
 $("goBox").addEventListener("submit", async e => {
   e.preventDefault();
@@ -1799,11 +1802,12 @@ $("goBox").addEventListener("submit", async e => {
     } else { city = prev; throw new Error("その近くにはストリートビューがありませんでした。"); }
   } catch (err) { $("goErr").textContent = err.message; $("goErr").hidden = false; }
 });
-$("warpBtn").addEventListener("click", () => warp(false));
-$("logBtn").addEventListener("click", () => {
+$("warpBtn").addEventListener("click", () => { $("goBox").hidden = true; $("destBtn").setAttribute("aria-pressed", false); warp(false); });
+function toggleLog(){
   const box = $("log"), on = box.hidden;
-  box.hidden = !on; $("logBtn").setAttribute("aria-pressed", on);
-});
+  box.hidden = !on; $("snapBtn").setAttribute("aria-pressed", on);
+  if (on) { $("chat").hidden = true; $("chatBtn").setAttribute("aria-pressed", false); }
+}
 function recordPhoto(){
   logItems.unshift({ pano: pano.getPano(), pov: pano.getPov(),
     title: pano.getLocation()?.description || `${shortName()} のどこか`, at: $("sDist").textContent, time: $("sTime").textContent });
@@ -1871,9 +1875,8 @@ function openTogether(){
 $("chatBtn").addEventListener("click", () => {
   const box = $("chat"), on = box.hidden;
   box.hidden = !on; $("chatBtn").setAttribute("aria-pressed", on);
-  if (on) { $("chatDot").hidden = true; $("log").hidden = true; $("logBtn").setAttribute("aria-pressed", false); renderFriends(); $("chatLog").scrollTop = 1e9; }
+  if (on) { $("chatDot").hidden = true; $("log").hidden = true; $("snapBtn").setAttribute("aria-pressed", false); renderFriends(); $("chatLog").scrollTop = 1e9; }
 });
-$("logBtn").addEventListener("click", () => { if (!$("log").hidden) { $("chat").hidden = true; $("chatBtn").setAttribute("aria-pressed", false); } });
 // キーボードが出ているあいだは、パネルを見えている範囲の下端(キーボードの上)に合わせる
 function placeChat(){
   const c = $("chat"), vv = window.visualViewport;
