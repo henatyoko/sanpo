@@ -106,9 +106,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
 #mapbox{
   right:12px;bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
-  width:min(300px,calc(100vw - 24px));height:220px;overflow:hidden;padding:0;
+  width:min(340px,calc(100vw - 24px));overflow:hidden;padding:0;display:grid;
 }
-#minimap{width:100%;height:100%}
+#minimap{width:100%;height:220px}
 
 #log{
   left:12px;bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
@@ -134,10 +134,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #hiro.gallop.walking .leg-r{animation-delay:-.17s}
 #hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
 #hiro.gallop.walking .hair-tips{animation-duration:.34s}
-#goBox{
-  left:50%;transform:translateX(-50%);bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
-  width:min(420px,calc(100vw - 24px));padding:12px 14px;display:grid;gap:8px;z-index:7;
-}
+/* 地図パネルの上の行き先入力(お散歩のとき) */
+#goBox{padding:12px 14px;display:grid;gap:8px}
+#goBox[hidden]{display:none}
 #goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
 #goBox .row{display:flex;gap:8px}
 #goBox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
@@ -167,10 +166,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #hiro.gallop.walking .leg-r{animation-delay:-.17s}
 #hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
 #hiro.gallop.walking .hair-tips{animation-duration:.34s}
-#goBox{
-  left:50%;transform:translateX(-50%);bottom:calc(var(--barTop,72px) + 12px + env(safe-area-inset-bottom,0px));
-  width:min(420px,calc(100vw - 24px));padding:12px 14px;display:grid;gap:8px;z-index:7;
-}
+/* 地図パネルの上の行き先入力(お散歩のとき) */
+#goBox{padding:12px 14px;display:grid;gap:8px}
+#goBox[hidden]{display:none}
 #goBox label{font-size:12px;color:var(--muted);letter-spacing:.06em}
 #goBox .row{display:flex;gap:8px}
 #goBox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--on-glass);font:inherit;font-size:16px}
@@ -246,7 +244,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 @media (prefers-reduced-motion:reduce){#say{animation:none}}
 @media (max-width:560px){#hiro{height:min(24vh,190px);bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
 
-#goBox button{flex:none;white-space:nowrap} @media (max-width:560px){#goBox{top:calc(78px + env(safe-area-inset-top,0px));bottom:auto}}
+#goBox button{flex:none;white-space:nowrap}
 /* ===== 鬼ごっこ版 追加 ===== */
 :root{ --oni:#d9453a; }
 .screen{
@@ -351,7 +349,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;gap:8px;padding:12px 14px;z-index:7;overflow:hidden;
 }
 /* 入力中はバーなどを隠して、パネルをキーボードのすぐ上に出す(JSで位置を決める) */
-body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:none}
+body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say,body.typingGo #minimap{display:none}
 #chat .chatHead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
 #chat .chatHead b{color:var(--lantern)}
 #chat .chatHead span b{font-size:18px;letter-spacing:.15em;color:var(--on-glass)}
@@ -522,12 +520,6 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:non
 </div>
 <div class="hud" id="place" hidden></div>
 
-<form class="hud" id="goBox" hidden>
-  <label for="goAddr">次の行き先（住所や場所の名前）</label>
-  <div class="row"><input id="goAddr" type="text" autocomplete="off" placeholder="例：東京タワー"><button type="submit">行く</button></div>
-  <p class="err" id="goErr" hidden></p>
-  <button type="button" id="warpBtn" class="warp">この街のどこかへワープ</button>
-</form>
 <div class="hud" id="log" hidden>
   <button type="button" id="snapNow" class="snapNow">この場所を記録する</button>
   <h2>撮った景色</h2>
@@ -551,7 +543,15 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:non
 <div id="pad" hidden role="group" aria-label="進む方向"></div>
 <div id="freeze" hidden><div class="big num" id="fCount">20</div><p>鬼はあと少し待ってね</p></div>
 
-<div class="hud" id="mapbox" hidden><div id="minimap"></div></div>
+<div class="hud" id="mapbox" hidden>
+<form id="goBox" hidden>
+  <label for="goAddr">次の行き先（住所や場所の名前）</label>
+  <div class="row"><input id="goAddr" type="text" autocomplete="off" placeholder="例：東京タワー"><button type="submit">行く</button></div>
+  <p class="err" id="goErr" hidden></p>
+  <button type="button" id="warpBtn" class="warp">この街のどこかへワープ</button>
+</form>
+<div id="minimap"></div>
+</div>
 
 <div class="hud" id="chat" hidden>
   <div class="chatHead"><b>いっしょに歩く</b><span>あいことば <b class="num" id="chatCode"></b></span></div>
@@ -577,17 +577,13 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say{display:non
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
     <span id="snapLabel">記録</span>
   </button>
-  <button id="mapBtn" aria-pressed="false" title="地図">
+  <button id="mapBtn" aria-pressed="false" title="地図・行き先・ワープ">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14M15 6v14"/></svg>
     <span>地図</span>
   </button>
   <button id="chatBtn" aria-pressed="false" title="いっしょに歩いている人・チャット" hidden>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>
     <span>みんな</span><i class="dot" id="chatDot" hidden></i>
-  </button>
-  <button id="destBtn" aria-pressed="false" title="住所で行き先を選ぶ・ワープ">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-    <span>移動</span>
   </button>
 </nav>
 
@@ -706,7 +702,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-j";
+const VERSION = "9/27-k";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1551,6 +1547,7 @@ $("mapBtn").addEventListener("click", () => {
   const box = $("mapbox"), on = box.hidden;
   box.hidden = !on; $("mapBtn").setAttribute("aria-pressed", on);
   if (on && minimap) { google.maps.event.trigger(minimap, "resize"); minimap.setCenter(myPos || centerLL); }
+  if (on && mode === "walk") { $("goErr").hidden = true; if (!matchMedia("(pointer: coarse)").matches) $("goAddr").focus(); }
 });
 let toastT;
 function toast(msg){
@@ -1622,7 +1619,8 @@ function turnPad(){
   $("pad").querySelectorAll("button").forEach(b => b.style.transform = `rotate(${norm(+b.dataset.heading - h)}deg) translateY(-50px)`);
 }
 function setBar(m){
-  ["autoBtn","destBtn"].forEach(id => $(id).hidden = m !== "walk");
+  $("autoBtn").hidden = m !== "walk";
+  $("goBox").hidden = m !== "walk";
   $("chatBtn").hidden = !(m === "walk" && walkRoom);
 }
 
@@ -1784,11 +1782,6 @@ $("autoBtn").addEventListener("click", () => {
   if (on) { autoStep(); autoTimer = setInterval(autoStep, autoInterval()); $("hiro").classList.add("walking"); }
   else { clearInterval(autoTimer); autoTimer = null; $("hiro").classList.remove("walking"); }
 });
-$("destBtn").addEventListener("click", () => {
-  const box = $("goBox"), on = box.hidden;
-  box.hidden = !on; $("destBtn").setAttribute("aria-pressed", on);
-  if (on) { $("goErr").hidden = true; if (!matchMedia("(pointer: coarse)").matches) $("goAddr").focus(); }
-});
 $("goBox").addEventListener("submit", async e => {
   e.preventDefault();
   const q = $("goAddr").value.trim(); if (!q) return;
@@ -1797,12 +1790,13 @@ $("goBox").addEventListener("submit", async e => {
     const g = await geocode(q);
     const prev = city; city = { name: `${q} ${g.full || ""}`, label: q, lat: g.lat, lng: g.lng, r: 600 };
     if (await warp(true)) {
-      $("goBox").hidden = true; $("destBtn").setAttribute("aria-pressed", false); $("goAddr").value = "";
+      closeMap(); $("goAddr").value = "";
       setTimeout(() => say(`${q}に着いた！`), 600);
     } else { city = prev; throw new Error("その近くにはストリートビューがありませんでした。"); }
   } catch (err) { $("goErr").textContent = err.message; $("goErr").hidden = false; }
 });
-$("warpBtn").addEventListener("click", () => { $("goBox").hidden = true; $("destBtn").setAttribute("aria-pressed", false); warp(false); });
+$("warpBtn").addEventListener("click", () => { closeMap(); warp(false); });
+function closeMap(){ $("mapbox").hidden = true; $("mapBtn").setAttribute("aria-pressed", false); }
 function toggleLog(){
   const box = $("log"), on = box.hidden;
   box.hidden = !on; $("snapBtn").setAttribute("aria-pressed", on);
@@ -1878,18 +1872,23 @@ $("chatBtn").addEventListener("click", () => {
   if (on) { $("chatDot").hidden = true; $("log").hidden = true; $("snapBtn").setAttribute("aria-pressed", false); renderFriends(); $("chatLog").scrollTop = 1e9; }
 });
 // キーボードが出ているあいだは、パネルを見えている範囲の下端(キーボードの上)に合わせる
+// (チャットと、地図パネルの行き先入力の両方)
 function placeChat(){
-  const c = $("chat"), vv = window.visualViewport;
-  const typing = !c.hidden && document.activeElement === $("chatText");
-  document.body.classList.toggle("typing", typing);
-  if (!typing) { c.style.bottom = c.style.maxHeight = ""; return; }
+  const act = document.activeElement, vv = window.visualViewport;
+  const c = act === $("chatText") && !$("chat").hidden ? $("chat") : act === $("goAddr") && !$("mapbox").hidden ? $("mapbox") : null;
+  document.body.classList.toggle("typing", !!c);
+  document.body.classList.toggle("typingGo", c === $("mapbox"));
+  ["chat", "mapbox"].forEach(id => { if ($(id) !== c) $(id).style.bottom = $(id).style.maxHeight = ""; });
+  if (!c) return;
   const visH = vv ? vv.height : innerHeight, kb = vv ? Math.max(0, innerHeight - vv.height - vv.offsetTop) : 0;
   c.style.bottom = (kb + 8) + "px";
   c.style.maxHeight = Math.max(120, visH - 16) + "px";
   $("chatLog").scrollTop = 1e9;
 }
-$("chatText").addEventListener("focus", () => setTimeout(placeChat, 50));
-$("chatText").addEventListener("blur", () => setTimeout(placeChat, 50));
+["chatText", "goAddr"].forEach(id => {
+  $(id).addEventListener("focus", () => setTimeout(placeChat, 50));
+  $(id).addEventListener("blur", () => setTimeout(placeChat, 50));
+});
 if (window.visualViewport) { visualViewport.addEventListener("resize", placeChat); visualViewport.addEventListener("scroll", placeChat); }
 addEventListener("resize", placeChat);
 $("chatForm").addEventListener("submit", e => { e.preventDefault(); sendChat($("chatText").value); $("chatText").value = ""; });
