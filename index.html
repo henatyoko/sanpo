@@ -154,7 +154,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 @media (max-width:560px){
   #place{top:calc(78px + env(safe-area-inset-top,0px));right:auto;left:12px;max-width:calc(100% - 24px);padding:5px 10px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .5s} #place.fade{opacity:0;pointer-events:none}
   #bar button span{display:none}
-  #bar button{padding:12px}
+  #bar button{padding:12px 10px}
+  #bar{gap:4px}
 }
 @media (prefers-reduced-motion:reduce){/* キャラ選び */
 .field .lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
