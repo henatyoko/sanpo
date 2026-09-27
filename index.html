@@ -704,7 +704,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-g";
+const VERSION = "9/27-h";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -872,23 +872,23 @@ function reshapeMe(back, face, look){
   if (look.outfit === "pants") {
     const P = "#34384a";
     back = back
-      .split('x="45" y="140" width="13" height="38" rx="6" fill="#f0cfb6"').join(`x="43" y="120" width="16" height="58" rx="6" fill="${P}"`)
-      .split('x="45" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="43" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
-      .split('x="62" y="140" width="13" height="38" rx="6" fill="#f0cfb6"').join(`x="61" y="120" width="16" height="58" rx="6" fill="${P}"`)
-      .split('x="71" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="73" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
+      .split('x="45" y="140" width="13" height="38" rx="6" fill="#f0cfb6"').join(`x="40" y="120" width="19" height="58" rx="6" fill="${P}"`)
+      .split('x="45" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="40" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
+      .split('x="62" y="140" width="13" height="38" rx="6" fill="#f0cfb6"').join(`x="61" y="120" width="19" height="58" rx="6" fill="${P}"`)
+      .split('x="71" y="140" width="4" height="38" rx="2" fill="#e2b99c"').join('x="76" y="120" width="4" height="58" rx="2" fill="#2a2d3a"')
       .split('M36 82 C44 76 76 76 84 82 L86 104 C92 130 96 150 98 168 C80 176 40 176 22 168 C24 150 28 130 34 104 Z').join('M38 81 C45 77 75 77 82 81 L84 100 L84 127 C72 129 48 129 36 127 L36 100 Z')
       .split('M34 104 C50 110 70 110 86 104').join('M36 124 C48 126 72 126 84 124')
       .split('d="M22 168 C40 176 80 176 98 168" fill="none" stroke="#16305a" stroke-width="2"')
       .join('d="M52.5 81 V75.5 Q60 77 67.5 75.5 V81 Z" fill="url(#stripe)"></path><path d="M52.5 81 V75.5 Q60 77 67.5 75.5 V81" fill="none" stroke="#16305a" stroke-width="1.2"')
       .split('x="23" y="84" width="16" height="22" rx="7"').join('x="25" y="82" width="15" height="20" rx="4"')
       .split('x="81" y="84" width="16" height="22" rx="7"').join('x="80" y="82" width="15" height="20" rx="4"');
-    // シャツはハイネック(ワンピースの丸い襟ぐりを消す)
-    face = face
-      .split('d="M38 77 C42 86 58 86 62 77 C58 79 42 79 38 77 Z" fill="#f0cfb6"')
-      .join('d="M42.5 80 V71.5 Q50 73.5 57.5 71.5 V80 Z" fill="url(#stripeF)"')
-      .split('d="M37 77 C42 88 58 88 63 77" fill="none" stroke="#16305a" stroke-width="1.6"')
-      .join('d="M42.5 78 V71.5 Q50 73.5 57.5 71.5 V78" fill="none" stroke="#16305a" stroke-width="1.2"');
   }
+  // 服はワンピースもシャツもハイネック(丸い襟ぐりの線が首飾りのように見えるので)
+  face = face
+    .split('d="M38 77 C42 86 58 86 62 77 C58 79 42 79 38 77 Z" fill="#f0cfb6"')
+    .join('d="M42.5 80 V71.5 Q50 73.5 57.5 71.5 V80 Z" fill="url(#stripeF)"')
+    .split('d="M37 77 C42 88 58 88 63 77" fill="none" stroke="#16305a" stroke-width="1.6"')
+    .join('d="M42.5 78 V71.5 Q50 73.5 57.5 71.5 V78" fill="none" stroke="#16305a" stroke-width="1.2"');
   return [back, face];
 }
 const GLASSES_FACE = `<g fill="none" stroke="#2a2a2e" stroke-width="1.8"><circle cx="42" cy="51" r="6.5"/><circle cx="58" cy="51" r="6.5"/><path d="M48.5 51 H51.5"/></g>`;
@@ -936,8 +936,10 @@ function buildLook(cid, look){
     face += RIBBON_FACE;
   }
   if (c.id === "me" && look.glasses === "glasses") face += GLASSES_FACE;
-  const cut = back.lastIndexOf("</g>");
-  const front = back.slice(0, cut) + `<g transform="${c.head}">${faceNoBg(face)}</g>` + back.slice(cut);
+  // 正面では後ろ髪の筋を描かない(首の横からはみ出して見えるので)
+  const body = back.replace(new RegExp(`<path d="(?:${LINES_LONG_B}|${LINES_SHORT_B})"[^>]*>(?:</path>)?`), "");
+  const cut = body.lastIndexOf("</g>");
+  const front = body.slice(0, cut) + `<g transform="${c.head}">${faceNoBg(face)}</g>` + body.slice(cut);
   return { c, back, front, face };
 }
 let spriteSeq = 0;
