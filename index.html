@@ -130,10 +130,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .chip{display:grid;justify-items:center;gap:4px;padding:8px 4px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);color:var(--on-glass);font-weight:700;font-size:13px}
 .chip svg{width:52px;height:52px}
 .chip[aria-pressed="true"]{border-color:var(--lantern);background:rgba(233,162,59,.18)}
-#hiro.gallop.walking .leg-l,#hiro.gallop.walking .leg-r{animation-duration:.34s}
-#hiro.gallop.walking .leg-r{animation-delay:-.17s}
-#hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
-#hiro.gallop.walking .hair-tips{animation-duration:.34s}
+.walker.gallop.walking .leg-l,.walker.gallop.walking .leg-r{animation-duration:.34s}
+.walker.gallop.walking .leg-r{animation-delay:-.17s}
+.walker.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
+.walker.gallop.walking .hair-tips{animation-duration:.34s}
 /* 地図パネルの上の行き先入力(お散歩のとき) */
 #goBox{padding:12px 14px;display:grid;gap:8px}
 #goBox[hidden]{display:none}
@@ -163,10 +163,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .chip{display:grid;justify-items:center;gap:4px;padding:8px 4px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);color:var(--on-glass);font-weight:700;font-size:13px}
 .chip svg{width:52px;height:52px}
 .chip[aria-pressed="true"]{border-color:var(--lantern);background:rgba(233,162,59,.18)}
-#hiro.gallop.walking .leg-l,#hiro.gallop.walking .leg-r{animation-duration:.34s}
-#hiro.gallop.walking .leg-r{animation-delay:-.17s}
-#hiro.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
-#hiro.gallop.walking .hair-tips{animation-duration:.34s}
+.walker.gallop.walking .leg-l,.walker.gallop.walking .leg-r{animation-duration:.34s}
+.walker.gallop.walking .leg-r{animation-delay:-.17s}
+.walker.gallop.walking .figure{animation:bob .17s ease-in-out infinite alternate}
+.walker.gallop.walking .hair-tips{animation-duration:.34s}
 /* 地図パネルの上の行き先入力(お散歩のとき) */
 #goBox{padding:12px 14px;display:grid;gap:8px}
 #goBox[hidden]{display:none}
@@ -185,45 +185,45 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   height:min(30vh,240px);aspect-ratio:120/200;max-width:100%;
   pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
 }
-#hiro svg{width:100%;height:100%;overflow:visible}
-#hiro .part{transform-box:fill-box}
-#hiro .leg{transform-origin:50% 0}
-#hiro .arm{transform-origin:50% 8%}
-#hiro .figure{animation:breathe 3.2s ease-in-out infinite}
-#hiro .hair-tips{transform-origin:50% 0;animation:sway 3.2s ease-in-out infinite}
-#hiro.walking .figure{animation:bob .32s ease-in-out infinite alternate}
-#hiro.walking .leg-l{animation:step .64s ease-in-out infinite}
-#hiro.walking .leg-r{animation:step .64s ease-in-out infinite -.32s}
-#hiro.walking .arm-l{animation:swing .64s ease-in-out infinite}
-#hiro.walking .arm-r{animation:swing .64s ease-in-out infinite -.32s}
-#hiro.walking .hair-tips{animation:sway .64s ease-in-out infinite}
-#hiro .shadow{transform-origin:50% 50%}
-#hiro.walking .shadow{animation:shadow .32s ease-in-out infinite alternate}
+.walker svg{width:100%;height:100%;overflow:visible}
+.walker .part{transform-box:fill-box}
+.walker .leg{transform-origin:50% 0}
+.walker .arm{transform-origin:50% 8%}
+.walker .figure{animation:breathe 3.2s ease-in-out infinite}
+.walker .hair-tips{transform-origin:50% 0;animation:sway 3.2s ease-in-out infinite}
+.walker.walking .figure{animation:bob .32s ease-in-out infinite alternate}
+.walker.walking .leg-l{animation:step .64s ease-in-out infinite}
+.walker.walking .leg-r{animation:step .64s ease-in-out infinite -.32s}
+.walker.walking .arm-l{animation:swing .64s ease-in-out infinite}
+.walker.walking .arm-r{animation:swing .64s ease-in-out infinite -.32s}
+.walker.walking .hair-tips{animation:sway .64s ease-in-out infinite}
+.walker .shadow{transform-origin:50% 50%}
+.walker.walking .shadow{animation:shadow .32s ease-in-out infinite alternate}
 @keyframes step{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-7px) scaleY(.93)}}
 @keyframes swing{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-8deg)}}
 @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
 @keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
 @keyframes sway{0%,100%{transform:rotate(1.2deg)}50%{transform:rotate(-1.2deg)}}
 @keyframes shadow{from{transform:scaleX(1)}to{transform:scaleX(.92)}}
-#hiro .back,#hiro .front{height:100%}
-#hiro .front{display:none}
-#hiro.facing .front{display:block}
-#hiro.facing .back{display:none}
-#hiro.facing .rear{display:none}
+.walker .back,.walker .front{height:100%}
+.walker .front{display:none}
+.walker.facing .front{display:block}
+.walker.facing .back{display:none}
+.walker.facing .rear{display:none}
 #flash{position:fixed;inset:0;background:#fff;z-index:40;pointer-events:none;opacity:0}
 #flash.go{animation:flash .5s ease-out}
 @keyframes flash{0%{opacity:.85}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){#flash.go{animation:none}}
-#hiro .scooter{display:none}
-#hiro.riding .scooter{display:inline}
-#hiro.riding .leg,#hiro.riding .arm,#hiro.riding .hair-tips{animation:none!important}
-#hiro.riding .arm-l{transform:rotate(22deg) scaleY(.82)}
-#hiro.riding .arm-r{transform:rotate(-22deg) scaleY(.82)}
-#hiro.riding .figure{animation:none}
-#hiro.riding.walking .figure{animation:ride .14s linear infinite alternate}
-#hiro.riding.walking .shadow{animation:none}
+.walker .scooter{display:none}
+.walker.riding .scooter{display:inline}
+.walker.riding .leg,.walker.riding .arm,.walker.riding .hair-tips{animation:none!important}
+.walker.riding .arm-l{transform:rotate(22deg) scaleY(.82)}
+.walker.riding .arm-r{transform:rotate(-22deg) scaleY(.82)}
+.walker.riding .figure{animation:none}
+.walker.riding.walking .figure{animation:ride .14s linear infinite alternate}
+.walker.riding.walking .shadow{animation:none}
 @keyframes ride{from{transform:translateY(0)}to{transform:translateY(-1.2px)}}
-@media (prefers-reduced-motion:reduce){#hiro *{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.walker *{animation:none!important}}
 #say{
   position:fixed;z-index:6;left:50%;transform:translateX(-50%);
   bottom:calc(var(--barTop,72px) + 6px + min(30vh,240px) + 6px + env(safe-area-inset-bottom,0px));
@@ -244,6 +244,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 @media (max-width:560px){#say{bottom:calc(70px + min(24vh,190px) + 6px + env(safe-area-inset-bottom,0px));font-size:14px}}
 @media (prefers-reduced-motion:reduce){#say{animation:none}}
 @media (max-width:560px){#hiro{height:min(24vh,190px);bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
+/* いっしょに歩く: すぐ近くの友だちは自分の隣に並べる */
+#buddies{position:fixed;z-index:4;left:50%;width:0;pointer-events:none;
+  bottom:calc(var(--barTop,72px) + 6px + env(safe-area-inset-bottom,0px));height:min(30vh,240px)}
+@media (max-width:560px){#buddies{height:min(24vh,190px);bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
+.buddy{position:absolute;bottom:0;height:92%;aspect-ratio:120/200;transform:translateX(-50%);filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));transition:left .3s}
+#followChip{
+  position:fixed;z-index:6;left:50%;transform:translateX(-50%);top:calc(84px + env(safe-area-inset-top,0px));
+  border:0;border-radius:999px;padding:8px 14px;background:var(--lantern);color:#2a1c05;font-weight:800;font-size:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;
+}
 
 #goBox button{flex:none;white-space:nowrap}
 /* ===== 鬼ごっこ版 追加 ===== */
@@ -319,7 +329,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #others{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
 .sprite{position:absolute;transform:translate(-50%,-100%);aspect-ratio:120/200}
 .sprite svg{width:100%;height:100%;overflow:visible;display:block}
-.sprite .tag{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:11px;font-weight:700;background:var(--glass);color:var(--on-glass);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.sprite .tag,.buddy .tag{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:11px;font-weight:700;background:var(--glass);color:var(--on-glass);padding:2px 8px;border-radius:999px;white-space:nowrap}
 .sprite.oni .tag{background:var(--oni);color:#fff;font-size:13px}
 .sprite.oni svg{filter:drop-shadow(0 0 6px var(--oni)) drop-shadow(0 0 2px #fff)}
 @media (prefers-reduced-motion:reduce){#tagBtn{animation:none}}
@@ -338,7 +348,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #pad button:disabled{opacity:.3}
 .sprite.catchable{pointer-events:auto;cursor:pointer}
 /* いっしょに歩く: ふきだし・チャット */
-.sprite .bubble{
+.sprite .bubble,.buddy .bubble{
   position:absolute;bottom:100%;left:50%;transform:translate(-50%,-30px);width:max-content;max-width:200px;
   background:var(--paper);color:var(--ink);padding:6px 10px;border-radius:12px;font-size:13px;font-weight:700;line-height:1.4;
   box-shadow:0 4px 12px rgba(0,0,0,.3);white-space:normal;
@@ -350,7 +360,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;gap:8px;padding:12px 14px;z-index:7;overflow:hidden;
 }
 /* 入力中はバーなどを隠して、パネルをキーボードのすぐ上に出す(JSで位置を決める) */
-body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say,body.typingGo #minimap{display:none}
+body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #buddies,body.typing #followChip,body.typing #say,body.typingGo #minimap{display:none}
 #chat .chatHead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
 #chat .chatHead b{color:var(--lantern)}
 #chat .chatHead span b{font-size:18px;letter-spacing:.15em;color:var(--on-glass)}
@@ -589,7 +599,9 @@ body.typing #bar,body.typing #pad,body.typing #hiro,body.typing #say,body.typing
 </nav>
 
 <!-- 歩く人(後ろ姿) -->
-<div id="hiro" class="riding" hidden aria-label="前を進むわたし">
+<div id="buddies" aria-hidden="true"></div>
+<button id="followChip" type="button" hidden></button>
+<div id="hiro" class="walker riding" hidden aria-label="前を進むわたし">
 <svg viewBox="0 0 120 200" role="img">
   <defs>
     <pattern id="stripe" width="7" height="10" patternUnits="userSpaceOnUse">
@@ -703,7 +715,7 @@ const PRESETS = [
   { name: "大阪・中崎町",          lat: 34.7090, lng: 135.5040, r: 700 },
   { name: "尾道",                 lat: 34.4090, lng: 133.2030, r: 1000 }
 ];
-const VERSION = "9/27-l";
+const VERSION = "9/27-m";
 const $ = id => document.getElementById(id);
 const rand = a => a[Math.floor(Math.random() * a.length)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1042,6 +1054,7 @@ function payload(){
   if (myPos) { p.lat = +myPos.lat().toFixed(6); p.lng = +myPos.lng().toFixed(6); }
   if (isHost) { p.room = room; p.state = game && !ended ? "playing" : "lobby"; }
   if (game && !ended) { p.gid = game.startAt; p.roles = game.roles; } // つかまった情報を全員で持ち合う
+  if (walkRoom && pano) { p.pano = pano.getPano(); p.hd = Math.round(pano.getPov().heading); p.ride = riding; } // ついていく・並んで歩く用
   return p;
 }
 let lastTrack = 0, trackTimer = null;
@@ -1090,6 +1103,7 @@ function onSync(){
     if (Object.keys(prev).length) for (const id in players) if (id !== myId && !prev[id]) toast(`${players[id].name} が来ました`);
     for (const id in prev) if (id !== myId && !players[id]) toast(`${prev[id].name} が帰りました`);
     renderOthers(); renderFriends();
+    if (followId) { const t = players[followId]; if (t) followStep(t); else stopFollow(`${prev[followId]?.name || "相手"}がいなくなりました`); }
   }
 }
 const hostP = () => Object.values(players).find(p => p.host);
@@ -1320,16 +1334,17 @@ $("tagBtn").addEventListener("click", () => tryTag());
 const spriteCache = {};
 function renderOthers(){
   const layer = $("others");
+  renderBuddies();
   if ((mode === "walk" ? !walkRoom : !game || ended) || !myPos || !pano) { layer.innerHTML = ""; return; }
   const pov = pano.getPov(), zoom = pano.getZoom() || 1;
   const fov = 180 / Math.pow(2, zoom), half = fov / 2;
   const W = innerWidth, H = innerHeight, focal = (W / 2) / Math.tan(half * Math.PI / 180);
   const seen = new Set();
   others().forEach(p => {
-    const ll = new google.maps.LatLng(p.lat, p.lng), d = Math.max(3, D(myPos, ll));
+    const ll = new google.maps.LatLng(p.lat, p.lng), d0 = D(myPos, ll), d = Math.max(3, d0);
     const rel = norm(HEAD(myPos, ll) - pov.heading);
     let el = layer.querySelector(`[data-id="${p.id}"]`);
-    if (d > 90 || Math.abs(rel) > half + 5) { if (el) el.remove(); return; }
+    if (d > 90 || Math.abs(rel) > half + 5 || (mode === "walk" && d0 <= BUDDY_D)) { if (el) el.remove(); return; }
     seen.add(p.id);
     const key = p.char + JSON.stringify(p.look) + p.role + p.name;
     if (!el) {
@@ -1345,7 +1360,8 @@ function renderOthers(){
     }
     const x = W / 2 + Math.tan(rel * Math.PI / 180) * focal;
     // 近づくほど大きく。遠くても見えるよう実際の縮尺より大きめに描く
-    const h = Math.min(H * .55, Math.max(focal, H / 2) * (.12 + 7 / d));
+    // 近くでも自分のキャラより大きくならないようにする
+    const h = Math.min(($("hiro").offsetHeight || H * .3) * 1.05, Math.max(focal, H / 2) * (.12 + 7 / d));
     const feet = Math.min(H - 80, H / 2 + (2.3 - pov.pitch * .03) * focal / d);
     el.style.left = x + "px"; el.style.top = feet + "px"; el.style.height = h + "px";
     el.style.zIndex = String(1000 - Math.round(d));
@@ -1508,7 +1524,7 @@ let riding = false;
 function applyChar(){
   const h = $("hiro"), L = buildLook(char.id, look);
   h.innerHTML = `<div class="back">${uniq(L.back, "b")}</div><div class="front">${uniq(L.front, "f")}</div>`;
-  h.className = "";
+  h.className = "walker";
   $("say").querySelector(".face").innerHTML = uniq(L.face, "s");
   riding = !!char.rideOn;
   $("rideBtn").hidden = !char.ride;
@@ -1522,6 +1538,7 @@ $("rideBtn").addEventListener("click", () => {
   $("rideLabel").textContent = riding ? char.unride : char.ride;
   $("hiro").classList.toggle(rideClass(), riding);
   say(char.rideSay[riding ? 0 : 1]);
+  if (walkRoom) track();
   if (autoTimer) { clearInterval(autoTimer); autoTimer = setInterval(autoStep, autoInterval()); }
 });
 let sayT, hiroT, faceT;
@@ -1661,6 +1678,8 @@ async function startWalk(near){
 }
 function walkMove(){
   const p = pano.getPosition(); if (!p) return;
+  if (followId && !followMoving) { const t = players[followId]; if (!t || t.pano !== pano.getPano()) stopFollow("ついていくのをやめました"); }
+  followMoving = false;
   if (lastPos && !warping) {
     const d = D(lastPos, p);
     if (d < 150) { dist += d; steps++; pathLine.getPath().push(p); hiroWalk(); chatter(d); }
@@ -1781,6 +1800,7 @@ function smoothTurn(from, to){
 function autoInterval(){ return riding ? 2600 : 4500; }
 $("autoBtn").addEventListener("click", () => {
   const on = !autoTimer;
+  if (on) stopFollow();
   $("autoBtn").setAttribute("aria-pressed", on);
   $("autoLabel").textContent = on ? "とめる" : "おまかせ";
   if (on) { autoStep(); autoTimer = setInterval(autoStep, autoInterval()); $("hiro").classList.add("walking"); }
@@ -1914,8 +1934,69 @@ function onChat(m){
   if (mine) { say(text); return; }
   bubbles[m.id] = { text, until: Date.now() + 6000 };
   renderOthers(); setTimeout(renderOthers, 6100);
-  const seen = document.querySelector(`#others [data-id="${m.id}"]`);
+  const seen = document.querySelector(`#others [data-id="${m.id}"], #buddies [data-id="${m.id}"]`);
   if ($("chat").hidden) { $("chatDot").hidden = false; if (!seen) toast(`${m.name}「${text}」`); }
+}
+// ---------- ついていく ----------
+let followId = null, followMoving = false;
+function startFollow(id){
+  const t = players[id]; if (!t) return;
+  if (autoTimer) $("autoBtn").click();
+  followId = id;
+  $("followChip").textContent = `${t.name}についていく中　✕`; $("followChip").hidden = false;
+  $("chat").hidden = true; $("chatBtn").setAttribute("aria-pressed", false);
+  say(`${t.name}についていくね`);
+  followStep(t); renderFriends();
+}
+function stopFollow(msg){
+  if (!followId) return;
+  followId = null; $("followChip").hidden = true;
+  if (msg) toast(msg);
+  renderFriends();
+}
+$("followChip").addEventListener("click", () => stopFollow("ついていくのをやめました"));
+// 相手と同じ場所・同じ向きへ。遠くへワープしていたら近くへ飛ぶ
+function followStep(t){
+  if (!t || !t.pano || !pano || t.pano === pano.getPano()) return;
+  const ll = t.lat != null ? new google.maps.LatLng(t.lat, t.lng) : null;
+  followMoving = true;
+  if (ll && myPos && D(myPos, ll) > 150) { jumpTo(ll, 60).then(ok => { if (!ok) followMoving = false; }); return; }
+  pano.setPano(t.pano);
+  if (t.hd != null) smoothTurn(pano.getPov().heading, t.hd);
+}
+// ---------- 並んで歩く: すぐ近くの友だちを自分の隣に後ろ姿で並べる ----------
+const BUDDY_D = 12;
+function renderBuddies(){
+  const box = $("buddies");
+  if (mode !== "walk" || !walkRoom || !myPos || $("hiro").hidden) { box.innerHTML = ""; return; }
+  const near = others().filter(p => D(myPos, new google.maps.LatLng(p.lat, p.lng)) <= BUDDY_D)
+    .sort((a, b) => a.id < b.id ? -1 : 1).slice(0, 4);
+  const w = $("hiro").offsetWidth || 110, slots = [1, -1, 2, -2], seen = new Set();
+  near.forEach((p, i) => {
+    seen.add(p.id);
+    let el = box.querySelector(`[data-id="${p.id}"]`);
+    if (!el) { el = document.createElement("div"); el.className = "buddy walker"; el.dataset.id = p.id; box.appendChild(el); }
+    const key = p.char + JSON.stringify(p.look) + p.name;
+    if (el.dataset.key !== key) {
+      el.dataset.key = key;
+      const L = buildLook(p.char, p.look);
+      el.innerHTML = `<span class="tag">${esc(p.name)}</span><div class="back">${uniq(L.back, "bd" + (++spriteSeq))}</div>`;
+    }
+    el.style.left = Math.round(slots[i] * w * .8) + "px";
+    const rc = p.char === "horse" ? "gallop" : "riding";
+    el.classList.toggle("riding", !!p.ride && rc === "riding");
+    el.classList.toggle("gallop", !!p.ride && rc === "gallop");
+    if (el.dataset.pano && p.pano && el.dataset.pano !== p.pano) {
+      el.classList.add("walking"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("walking"), 1400);
+    }
+    el.dataset.pano = p.pano || "";
+    const cb = bubbles[p.id], bub = el.querySelector(".bubble");
+    if (cb && cb.until > Date.now()) {
+      if (bub) bub.textContent = cb.text;
+      else { const b = document.createElement("span"); b.className = "bubble"; b.textContent = cb.text; el.appendChild(b); }
+    } else if (bub) bub.remove();
+  });
+  [...box.children].forEach(el => { if (!seen.has(el.dataset.id)) el.remove(); });
 }
 function renderFriends(){
   if (!walkRoom) return;
@@ -1939,6 +2020,10 @@ function renderFriends(){
     const L = buildLook(p.char, p.look);
     const d = p.lat != null && myPos ? D(myPos, new google.maps.LatLng(p.lat, p.lng)) : null;
     li.innerHTML = `${svgFace(L.face, "fr" + i)}<span>${esc(p.name)}</span><small>${d == null ? "" : d < 1000 ? `約${Math.round(d)}m` : `約${(d / 1000).toFixed(1)}km`}</small>`;
+    const f = document.createElement("button"); f.type = "button";
+    f.textContent = followId === p.id ? "やめる" : "ついていく"; f.disabled = !p.pano;
+    f.addEventListener("click", () => { followId === p.id ? stopFollow() : startFollow(p.id); });
+    li.appendChild(f);
     const b = document.createElement("button"); b.type = "button"; b.textContent = "合流";
     b.disabled = p.lat == null;
     b.addEventListener("click", async () => {
